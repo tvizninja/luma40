@@ -1,0 +1,547 @@
+/* Copyright 2025 Epomaker
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+#include QMK_KEYBOARD_H
+#include "../../../lib/rdr_lib/rdr_common.h"
+#include "via.h"
+#include "dynamic_keymap.h"
+#include "keymap_japanese.h"
+
+//for combo
+enum combos{
+    CMB_00, CMB_01, CMB_02, CMB_03, CMB_04, CMB_05, CMB_06, CMB_07, CMB_08, CMB_09,
+    CMB_10, CMB_11, CMB_12, CMB_13, CMB_14, CMB_15,
+};
+
+const uint16_t PROGMEM combo_00[] = {KC_TAB, KC_A, COMBO_END}; 
+const uint16_t PROGMEM combo_01[] = {KC_TAB, KC_S, COMBO_END}; 
+const uint16_t PROGMEM combo_02[] = {KC_TAB, KC_Q, COMBO_END};
+const uint16_t PROGMEM combo_03[] = {KC_TAB, KC_E, COMBO_END};
+const uint16_t PROGMEM combo_04[] = {KC_TAB, KC_R, COMBO_END};
+const uint16_t PROGMEM combo_05[] = {KC_TAB, KC_T, COMBO_END};
+const uint16_t PROGMEM combo_06[] = {KC_ESC, KC_W, COMBO_END};
+const uint16_t PROGMEM combo_07[] = {KC_TAB, KC_Z, COMBO_END};
+const uint16_t PROGMEM combo_08[] = {KC_TAB, KC_X, COMBO_END};
+const uint16_t PROGMEM combo_09[] = {KC_TAB, KC_C, COMBO_END};
+const uint16_t PROGMEM combo_10[] = {KC_TAB, KC_V, COMBO_END};
+const uint16_t PROGMEM combo_11[] = {KC_LSFT, KC_Z, COMBO_END};
+const uint16_t PROGMEM combo_12[] = {COMBO_END};
+const uint16_t PROGMEM combo_13[] = {COMBO_END};
+const uint16_t PROGMEM combo_14[] = {COMBO_END};
+const uint16_t PROGMEM combo_15[] = {COMBO_END};
+
+combo_t key_combos[] = {
+    [CMB_00] = COMBO(combo_00, LCTL(LSFT(KC_TAB))),
+    [CMB_01] = COMBO(combo_01, LCTL(KC_TAB)),
+    [CMB_02] = COMBO(combo_02, LCTL(KC_1)),
+    [CMB_03] = COMBO(combo_03, LCTL(KC_9)),
+    [CMB_04] = COMBO(combo_04, LCTL(KC_R)),
+    [CMB_05] = COMBO(combo_05, LCTL(KC_T)),
+    [CMB_06] = COMBO(combo_06, LCTL(KC_W)),
+    [CMB_07] = COMBO(combo_07, LCTL(KC_Z)),
+    [CMB_08] = COMBO(combo_08, LCTL(KC_X)),
+    [CMB_09] = COMBO(combo_09, LCTL(KC_C)),
+    [CMB_10] = COMBO(combo_10, LCTL(KC_V)),
+    [CMB_11] = COMBO(combo_11, KC_MS_BTN1),
+    [CMB_12] = COMBO(combo_12, KC_NO),
+    [CMB_13] = COMBO(combo_13, KC_NO),
+    [CMB_14] = COMBO(combo_14, KC_NO),
+    [CMB_15] = COMBO(combo_15, KC_NO),
+};
+
+// override
+#define NO_EXTRA_MODS (MOD_MASK_SHIFT | MOD_MASK_CTRL | MOD_MASK_ALT | MOD_MASK_GUI)
+//#define w_shift(trigger_key, replacement_key) { .trigger = (trigger_key), .replacement = (replacement_key), .trigger_mods = MOD_MASK_SHIFT, .suppressed_mods = MOD_MASK_SHIFT, .layers = ~0, .negative_mod_mask = 0, .options = ko_options_default, .enabled = &override_ej_enabled, }
+//#define wo_shift(trigger_key, replacement_key) { .trigger = (trigger_key), .replacement = (replacement_key), .trigger_mods = 0, .suppressed_mods = 0, .layers = ~0, .negative_mod_mask = NO_EXTRA_MODS, .options = ko_options_default, .enabled = &override_ej_enabled, }
+#define W_SHIFT(name, trigger_key, output_keycode) static const override_ctx_ej_t name##_ctx = { .out_keycode   = (output_keycode), .suppress_mods = MOD_MASK_SHIFT }; static const key_override_t name = { .trigger = (trigger_key), .trigger_mods = MOD_MASK_SHIFT, .layers = ~0, .negative_mod_mask = 0, .suppressed_mods = 0, .replacement = KC_NO, .options = ko_options_default, .custom_action = override_ej_send, .context = (void *)&name##_ctx, .enabled = &override_ej_enabled }
+#define WO_SHIFT(name, trigger_key, output_keycode) static const override_ctx_ej_t name##_ctx = { .out_keycode   = (output_keycode), .suppress_mods = 0 }; static const key_override_t name = { .trigger = (trigger_key), .trigger_mods = 0, .layers = ~0, .negative_mod_mask = NO_EXTRA_MODS, .suppressed_mods = 0, .replacement = KC_NO, .options = ko_options_default, .custom_action = override_ej_send, .context = (void *)&name##_ctx, .enabled = &override_ej_enabled }
+
+// override setting
+
+typedef struct {
+    uint16_t out_keycode;
+    uint8_t  suppress_mods;
+} override_ctx_ej_t;
+
+enum {
+    EJ_TGL = SAFE_RANGE, EJ_ON, EJ_OFF,
+};
+static bool override_ej_enabled = true;
+
+bool ovrca_del(bool activated, void *context){
+    if (activated){
+        uint8_t saved_mods = get_mods();
+        del_mods(MOD_MASK_SHIFT);
+        send_keyboard_report();
+        tap_code(KC_DEL);
+        set_mods(saved_mods);
+        send_keyboard_report();
+    }
+    return false;
+}
+const key_override_t override_al_del = {
+    .trigger           = KC_BSPC,
+    .replacement       = KC_DEL,
+    .trigger_mods      = MOD_MASK_SHIFT,
+    .suppressed_mods   = MOD_MASK_SHIFT,
+    .layers            = ~0,
+    .negative_mod_mask = (uint8_t) ~(MOD_MASK_SHIFT),
+    .custom_action     = ovrca_del,
+    .options           = ko_options_default,
+    .enabled           = NULL,
+};
+
+static bool override_ej_send(bool activated, void *context) {
+    if (!activated || context == NULL) {
+        return false;
+    }
+    const override_ctx_ej_t *ctx = (const override_ctx_ej_t *)context;
+    uint8_t saved_mods = get_mods();
+    if (ctx->suppress_mods) {
+        del_mods(ctx->suppress_mods);
+        send_keyboard_report();
+    }
+    tap_code16(ctx->out_keycode);
+    set_mods(saved_mods);
+    send_keyboard_report();
+    return false;
+}
+
+W_SHIFT(ov_grv_tild,     KC_GRV,  JP_TILD);
+WO_SHIFT(ov_grv_grv,     KC_GRV,  JP_GRV);
+W_SHIFT(ov_2_at,         KC_2,    JP_AT);
+W_SHIFT(ov_6_circ,       KC_6,    JP_CIRC);
+W_SHIFT(ov_7_ampr,       KC_7,    JP_AMPR);
+W_SHIFT(ov_8_astr,       KC_8,    JP_ASTR);
+W_SHIFT(ov_9_lprn,       KC_9,    JP_LPRN);
+W_SHIFT(ov_0_rprn,       KC_0,    JP_RPRN);
+W_SHIFT(ov_mins_unds,    KC_MINS, JP_UNDS);
+WO_SHIFT(ov_eql_eq,      KC_EQL,  JP_EQL);
+W_SHIFT(ov_eql_plus,     KC_EQL,  JP_PLUS);
+WO_SHIFT(ov_lbrc_lbrc,   KC_LBRC, JP_LBRC);
+W_SHIFT(ov_lbrc_lcbr,    KC_LBRC, JP_LCBR);
+WO_SHIFT(ov_rbrc_rbrc,   KC_RBRC, JP_RBRC);
+W_SHIFT(ov_rbrc_rcbr,    KC_RBRC, JP_RCBR);
+WO_SHIFT(ov_bsls_bsls,   KC_BSLS, JP_BSLS);
+W_SHIFT(ov_bsls_pipe,    KC_BSLS, JP_PIPE);
+W_SHIFT(ov_scln_coln,    KC_SCLN, JP_COLN);
+W_SHIFT(ov_quot_dquo,    KC_QUOT, JP_DQUO);
+WO_SHIFT(ov_quot_quot,   KC_QUOT, JP_QUOT);
+
+const key_override_t **key_overrides = (const key_override_t *[]) {
+    &override_al_del,
+    &ov_grv_tild,
+    &ov_grv_grv,
+    &ov_2_at,
+    &ov_6_circ,
+    &ov_7_ampr,
+    &ov_8_astr,
+    &ov_9_lprn,
+    &ov_0_rprn,
+    &ov_mins_unds,
+    &ov_eql_eq,
+    &ov_eql_plus,
+    &ov_lbrc_lbrc,
+    &ov_lbrc_lcbr,
+    &ov_rbrc_rbrc,
+    &ov_rbrc_rcbr,
+    &ov_bsls_bsls,
+    &ov_bsls_pipe,
+    &ov_scln_coln,
+    &ov_quot_dquo,
+    &ov_quot_quot,
+    NULL
+};
+
+// macro init
+static void seed_via_macros_if_empty(void) {
+    uint8_t first = 0;
+    dynamic_keymap_macro_get_buffer(0, 1, &first);
+
+    if (first == 0) {
+        static uint8_t defaults[] =
+            "\0" //macro0
+            SS_LCTL("a") "\0" //macro1
+            "\0" //macro2
+            "\0" //macro3
+            SS_LGUI("r") "\0" //macro4
+            "%UserProfile%/Downloads/\0" //macro5
+            "\0" //macro6
+            "\0" //macro7
+            "\0" //macro8
+            "\0" //macro9
+            "\0" //macro10
+            "\0" //macro11
+            "\0" //macro12
+            ;
+        dynamic_keymap_macro_set_buffer(0, sizeof(defaults), defaults);
+    }
+}
+
+void keyboard_post_init_userfn(void) {
+    seed_via_macros_if_empty();
+}
+
+//for tapdance
+enum {
+    TD_M00, TD_M01, TD_M02, TD_M03, TD_M04, TD_M05, TD_M06, TD_M07, TD_M08, TD_M09,
+    TD_M10, TD_M11, TD_M12, TD_M13, TD_M14, TD_M15,
+};
+
+typedef enum {
+    TD_NONE,
+    TD_SINGLE_TAP,
+    TD_SINGLE_HOLD,
+    TD_DOUBLE_TAP,
+    TD_DOUBLE_HOLD,
+    TD_TRIPLE_TAP,
+    TD_TRIPLE_HOLD
+} td_state_t;
+
+static td_state_t td_state = TD_NONE;
+
+static td_state_t cur_dance(tap_dance_state_t *state) {
+    if (state->count == 1) {
+        return state->pressed ? TD_SINGLE_HOLD : TD_SINGLE_TAP;
+    } else if (state->count == 2) {
+        return state->pressed ? TD_DOUBLE_HOLD : TD_DOUBLE_TAP;
+    } else if (state->count == 3) {
+        return state->pressed ? TD_TRIPLE_HOLD : TD_TRIPLE_TAP;
+    }
+    return TD_NONE;
+}
+
+void td_reset(tap_dance_state_t *state, void *user_data) {
+    switch (td_state) {
+        case TD_SINGLE_HOLD:
+        case TD_DOUBLE_HOLD:
+        case TD_TRIPLE_HOLD:
+            unregister_code(KC_LCTL);
+            unregister_code(KC_LALT);
+            unregister_code(KC_LGUI);
+            break;
+        default:
+            break;
+    }
+    td_state = TD_NONE;
+}
+
+void td_01(tap_dance_state_t *state, void *user_data){
+    td_state = cur_dance(state);
+    switch (td_state) {
+        case TD_SINGLE_TAP:
+        case TD_SINGLE_HOLD:
+            tap_code(KC_F1);
+            break;
+        case TD_DOUBLE_TAP:
+        case TD_DOUBLE_HOLD:
+            dynamic_keymap_macro_send(1);
+            break;
+        default:
+            break;
+    }
+}
+
+void td_02(tap_dance_state_t *state, void *user_data){
+    td_state = cur_dance(state);
+    switch (td_state) {
+        case TD_SINGLE_TAP:
+        case TD_SINGLE_HOLD:
+            tap_code(KC_F2);
+            break;
+        case TD_DOUBLE_TAP:
+        case TD_DOUBLE_HOLD:
+            dynamic_keymap_macro_send(2);
+            break;
+        default:
+            break;
+    }
+}
+
+void td_03(tap_dance_state_t *state, void *user_data){
+    td_state = cur_dance(state);
+    switch (td_state) {
+        case TD_SINGLE_TAP:
+        case TD_SINGLE_HOLD:
+            tap_code(KC_F3);
+            break;
+        case TD_DOUBLE_TAP:
+        case TD_DOUBLE_HOLD:
+            dynamic_keymap_macro_send(3);
+            break;
+        default:
+            break;
+    }
+}
+
+void td_04(tap_dance_state_t *state, void *user_data){
+    td_state = cur_dance(state);
+    switch (td_state) {
+        case TD_SINGLE_TAP:
+        case TD_SINGLE_HOLD:
+            tap_code(KC_F4);
+            break;
+        case TD_DOUBLE_TAP:
+        case TD_DOUBLE_HOLD:
+            dynamic_keymap_macro_send(4);
+            break;
+        default:
+            break;
+    }
+}
+
+void td_05(tap_dance_state_t *state, void *user_data){
+    td_state = cur_dance(state);
+    switch (td_state) {
+        case TD_SINGLE_TAP:
+        case TD_SINGLE_HOLD:
+            tap_code(KC_F5);
+            break;
+        case TD_DOUBLE_TAP:
+        case TD_DOUBLE_HOLD:
+            dynamic_keymap_macro_send(5);
+            break;
+        default:
+            break;
+    }
+}
+
+void td_06(tap_dance_state_t *state, void *user_data){
+    td_state = cur_dance(state);
+    switch (td_state) {
+        case TD_SINGLE_TAP:
+        case TD_SINGLE_HOLD:
+            tap_code(KC_F6);
+            break;
+        case TD_DOUBLE_TAP:
+        case TD_DOUBLE_HOLD:
+            dynamic_keymap_macro_send(6);
+            break;
+        default:
+            break;
+    }
+}
+
+void td_07(tap_dance_state_t *state, void *user_data){
+    td_state = cur_dance(state);
+    switch (td_state) {
+        case TD_SINGLE_TAP:
+        case TD_SINGLE_HOLD:
+            tap_code(KC_F7);
+            break;
+        case TD_DOUBLE_TAP:
+        case TD_DOUBLE_HOLD:
+            dynamic_keymap_macro_send(7);
+            break;
+        default:
+            break;
+    }
+}
+
+void td_08(tap_dance_state_t *state, void *user_data){
+    td_state = cur_dance(state);
+    switch (td_state) {
+        case TD_SINGLE_TAP:
+        case TD_SINGLE_HOLD:
+            tap_code(KC_F8);
+            break;
+        case TD_DOUBLE_TAP:
+        case TD_DOUBLE_HOLD:
+            dynamic_keymap_macro_send(8);
+            break;
+        default:
+            break;
+    }
+}
+
+void td_09(tap_dance_state_t *state, void *user_data){
+    td_state = cur_dance(state);
+    switch (td_state) {
+        case TD_SINGLE_TAP:
+        case TD_SINGLE_HOLD:
+            tap_code(KC_F9);
+            break;
+        case TD_DOUBLE_TAP:
+        case TD_DOUBLE_HOLD:
+            dynamic_keymap_macro_send(9);
+            break;
+        default:
+            break;
+    }
+}
+
+void td_10(tap_dance_state_t *state, void *user_data){
+    td_state = cur_dance(state);
+    switch (td_state) {
+        case TD_SINGLE_TAP:
+        case TD_SINGLE_HOLD:
+            tap_code(KC_F10);
+            break;
+        case TD_DOUBLE_TAP:
+        case TD_DOUBLE_HOLD:
+            dynamic_keymap_macro_send(10);
+            break;
+        default:
+            break;
+    }
+}
+
+void td_11(tap_dance_state_t *state, void *user_data){
+    td_state = cur_dance(state);
+    switch (td_state) {
+        case TD_SINGLE_TAP:
+        case TD_SINGLE_HOLD:
+            tap_code(KC_F11);
+            break;
+        case TD_DOUBLE_TAP:
+        case TD_DOUBLE_HOLD:
+            dynamic_keymap_macro_send(11);
+            break;
+        default:
+            break;
+    }
+}
+
+void td_12(tap_dance_state_t *state, void *user_data){
+    td_state = cur_dance(state);
+    switch (td_state) {
+        case TD_SINGLE_TAP:
+        case TD_SINGLE_HOLD:
+            tap_code(KC_F12);
+            break;
+        case TD_DOUBLE_TAP:
+        case TD_DOUBLE_HOLD:
+            dynamic_keymap_macro_send(12);
+            break;
+        default:
+            break;
+    }
+}
+
+void td_13(tap_dance_state_t *state, void *user_data){
+    td_state = cur_dance(state);
+    switch (td_state) {
+        case TD_SINGLE_TAP:
+        case TD_SINGLE_HOLD:
+            tap_code(KC_QUOT);
+            break;
+        case TD_DOUBLE_TAP:
+        case TD_DOUBLE_HOLD:
+            tap_code(KC_LNG2);
+            break;
+        default:
+            break;
+    }
+}
+
+void td_14(tap_dance_state_t *state, void *user_data){
+    td_state = cur_dance(state);
+    switch (td_state) {
+        case TD_SINGLE_TAP:
+            tap_code(KC_APP);
+            break;
+        case TD_SINGLE_HOLD:
+            register_code(KC_LSFT);
+            tap_code(KC_APP);
+            unregister_code(KC_LSFT);
+            break;
+        case TD_DOUBLE_TAP:
+        case TD_DOUBLE_HOLD:
+            tap_code(KC_GRV);
+            break;
+        default:
+            break;
+    }
+}
+
+tap_dance_action_t tap_dance_actions[] = {
+//    [TD_M00] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, td_00, td_reset),
+    [TD_M01] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, td_01, td_reset),
+    [TD_M02] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, td_02, td_reset),
+    [TD_M03] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, td_03, td_reset),
+    [TD_M04] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, td_04, td_reset),
+    [TD_M05] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, td_05, td_reset),
+    [TD_M06] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, td_06, td_reset),
+    [TD_M07] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, td_07, td_reset),
+    [TD_M08] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, td_08, td_reset),
+    [TD_M09] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, td_09, td_reset),
+    [TD_M10] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, td_10, td_reset),
+    [TD_M11] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, td_11, td_reset),
+    [TD_M12] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, td_12, td_reset),
+    [TD_M13] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, td_13, td_reset),
+    [TD_M14] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, td_14, td_reset),
+//    [TD_M15] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, td_15, td_reset)
+};
+
+// keymap
+const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
+    [0] = LAYOUT_tkl_ansi(
+        KC_ESC,  KC_Q,    KC_W,      KC_E,       KC_R,       KC_T,      KC_Y,     KC_U,    KC_I,        KC_O,     KC_P,     KC_BSPC,  
+        KC_TAB,  KC_A,    KC_S,      KC_D,       KC_F,       KC_G,      KC_H,     KC_J,    KC_K,        KC_L,     KC_SCLN,  KC_ENT,  
+        KC_LSFT, KC_Z,    KC_X,      KC_C,       KC_V,       KC_B,      KC_N,     KC_M,    KC_COMM,     KC_DOT,   KC_UP ,   KC_SLSH,
+        KC_LCTL, KC_LGUI, KC_LALT,   TD(TD_M13), MO(1),                 KC_SPC,   MO(2),   TD(TD_M14),  KC_LEFT,  KC_DOWN,  KC_RGHT
+    ),
+    [1] = LAYOUT_tkl_ansi(
+        KC_ESC,  KC_1,       KC_2,       KC_3,       KC_4,       KC_5,       KC_6,       KC_7,    KC_8,    KC_9,     KC_0,     KC_BSPC,  
+        KC_TAB,  TD(TD_M01), TD(TD_M02), TD(TD_M03), TD(TD_M04), TD(TD_M05), TD(TD_M06), KC_MINS, KC_EQL,  KC_LBRC,  KC_RBRC,  KC_ENT,  
+        KC_LSFT, TD(TD_M07), TD(TD_M08), TD(TD_M09), TD(TD_M10), TD(TD_M11), TD(TD_M12), KC_SCLN, KC_QUOT, KC_GRV,   KC_UP ,   KC_BSLS,
+        KC_LCTL, KC_LGUI,    KC_LALT,    KC_LNG2,    MO(1),                  KC_SPC,     MO(3),   KC_LNG1, KC_LEFT,  KC_DOWN,  KC_RGHT
+    ),
+    [2] = LAYOUT_tkl_ansi(
+        KC_ESC,  KC_MS_WH_LEFT, KC_MS_UP,     KC_MS_WH_RIGHT, KC_MS_WH_UP,   KC_NO,     KC_HOME,  KC_PGDN, KC_PGUP, KC_END,   KC_NO,    KC_DEL,  
+        KC_TAB,  KC_MS_LEFT,    KC_MS_DOWN,   KC_MS_RIGHT,    KC_MS_WH_DOWN, KC_NO,     KC_LEFT,  KC_DOWN, KC_UP,   KC_RGHT,  KC_NO,    KC_ENT,  
+        KC_LSFT, KC_MS_BTN1,    KC_MS_BTN3,   KC_MS_BTN2,     KC_MS_BTN4,    KC_NO,     KC_NO,    KC_NO,   KC_NO,   KC_NO,    KC_PGUP , KC_NO,
+        KC_LCTL, KC_LGUI,       KC_LALT,      KC_MS_BTN5,     MO(3),                    KC_SPC,   MO(2),   KC_MENU, KC_HOME,  KC_PGDN,  KC_END
+    ),
+    [3] = LAYOUT_tkl_ansi(
+        KC_ESC,  MD_BLE1, MD_BLE2,   MD_BLE3,  MD_24G,     RGB_MOD,   KC_NO,    KC_NO,      KC_NO,             KC_NO,           KC_NO,    KC_DEL,  
+        KC_TAB,  KC_NO,    KC_NO,    KC_NO,    KC_NO,      KC_NO,     KC_NO,    EJ_TGL,     KC_NO,             KC_NO,           KC_NO,    KC_ENT,  
+        KC_LSFT, KC_NO,    KC_NO,    KC_NO,    KC_NO,      KC_NO,     KC_NO,    KC_KB_MUTE, KC_KB_VOLUME_DOWN, KC_KB_VOLUME_UP, KC_NO,    KC_NO,
+        KC_LCTL, KC_LGUI,  KC_LALT,  KC_NO,    MO(3),                 KC_SPC,   MO(3),      KC_NO,             KC_NO,           KC_NO,    KC_NO
+    )
+/*
+        KC_TAB,  MD_BLE1, MD_BLE2,   MD_BLE3,  MD_24G,     RGB_MOD,   TO(1),    TO(0),   KC_LBRC, KC_RBRC,  KC_BSLS,  RGB_RTOG,  
+        KC_LSFT, KC_INS,  KC_DEL,    KC_HOME,  KC_END,     KC_PGUP,   KC_PGDN,  RGB_SAD, RGB_HUD, RGB_HUI,  RGB_VAI , QK_BAT,
+        KC_NO,   KC_DEL,  KC_GRV,    KC_LALT,  QK_WLO,                U_EE_CLR, RGB_SAI, KC_EQL,  RGB_SPD,  RGB_VAD,  RGB_SPI
+*/
+};
+
+#if defined(ENCODER_MAP_ENABLE)
+const uint16_t PROGMEM encoder_map[][NUM_ENCODERS][2] = {
+    [0] = { ENCODER_CCW_CW(KC_AUDIO_VOL_DOWN, KC_AUDIO_VOL_UP) },
+    [1] = { ENCODER_CCW_CW(KC_AUDIO_VOL_DOWN, KC_AUDIO_VOL_UP) },
+    [2] = { ENCODER_CCW_CW(RGB_SAD, RGB_SAI) },
+    [3] = { ENCODER_CCW_CW(RGB_SPD, RGB_SPI) }
+};
+#endif
+
+bool process_record_userfn(uint16_t keycode, keyrecord_t *record){
+    if(!record->event.pressed){
+        return true;
+    }
+
+    switch(keycode){
+        case EJ_TGL:
+            override_ej_enabled = !override_ej_enabled;
+            return false;
+        case EJ_ON:
+            override_ej_enabled = true;
+            return false;
+        case EJ_OFF:
+            override_ej_enabled = false;
+            return false;
+    }
+    return true;
+}
