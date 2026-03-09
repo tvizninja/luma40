@@ -17,6 +17,182 @@
 #include "rdmctmzt_common.h"
 #include "keymap_japanese.h"
 
+// jis eng mapping
+typedef enum {
+    SYM_GRV,
+    SYM_TILD,
+    SYM_AT,
+    SYM_CIRC,
+    SYM_AMPR,
+    SYM_ASTR,
+    SYM_LPRN,
+    SYM_RPRN,
+    SYM_UNDS,
+    SYM_EQL,
+    SYM_PLUS,
+    SYM_LBRC,
+    SYM_LCBR,
+    SYM_RBRC,
+    SYM_RCBR,
+    SYM_BSLS,
+    SYM_PIPE,
+    SYM_COLN,
+    SYM_QUOT,
+    SYM_DQUO,
+    SYM__COUNT
+} symbol_t;
+
+#define SEQ_JP_TILD    SS_DOWN(X_LSFT) SS_TAP(X_EQL)  SS_UP(X_LSFT)
+#define SEQ_JP_GRV     SS_DOWN(X_LSFT) SS_TAP(X_LBRC) SS_UP(X_LSFT)
+#define SEQ_JP_AT      SS_TAP(X_LBRC)
+#define SEQ_JP_CIRC    SS_TAP(X_EQL)
+#define SEQ_JP_AMPR    SS_DOWN(X_LSFT) SS_TAP(X_6)    SS_UP(X_LSFT)
+#define SEQ_JP_ASTR    SS_DOWN(X_LSFT) SS_TAP(X_QUOT) SS_UP(X_LSFT)
+#define SEQ_JP_LPRN    SS_DOWN(X_LSFT) SS_TAP(X_8)    SS_UP(X_LSFT)
+#define SEQ_JP_RPRN    SS_DOWN(X_LSFT) SS_TAP(X_9)    SS_UP(X_LSFT)
+#define SEQ_JP_UNDS    SS_DOWN(X_LSFT) SS_TAP(X_INT1) SS_UP(X_LSFT)
+#define SEQ_JP_EQL     SS_DOWN(X_LSFT) SS_TAP(X_MINS) SS_UP(X_LSFT)
+#define SEQ_JP_PLUS    SS_DOWN(X_LSFT) SS_TAP(X_SCLN) SS_UP(X_LSFT)
+#define SEQ_JP_LBRC    SS_TAP(X_RBRC)
+#define SEQ_JP_LCBR    SS_DOWN(X_LSFT) SS_TAP(X_RBRC) SS_UP(X_LSFT)
+#define SEQ_JP_RBRC    SS_TAP(X_NUHS)
+#define SEQ_JP_RCBR    SS_DOWN(X_LSFT) SS_TAP(X_NUHS) SS_UP(X_LSFT)
+#define SEQ_JP_BSLS    SS_TAP(X_INT1)
+#define SEQ_JP_PIPE    SS_DOWN(X_LSFT) SS_TAP(X_INT3) SS_UP(X_LSFT)
+#define SEQ_JP_COLN    SS_TAP(X_QUOT)
+#define SEQ_JP_DQUO    SS_DOWN(X_LSFT) SS_TAP(X_2)    SS_UP(X_LSFT)
+#define SEQ_JP_QUOT    SS_DOWN(X_LSFT) SS_TAP(X_7)    SS_UP(X_LSFT)
+
+#define NO_EXTRA_MODS (MOD_MASK_SHIFT | MOD_MASK_CTRL | MOD_MASK_ALT | MOD_MASK_GUI)
+
+#define W_SHIFT(name, trigger_key, symbol_id) static const sym_override_ctx_t name##_ctx = { .sym = (symbol_id), .suppress_mods = MOD_MASK_SHIFT }; static const key_override_t name = { .trigger = (trigger_key), .trigger_mods = MOD_MASK_SHIFT, .layers = ~0, .negative_mod_mask = 0, .suppressed_mods = 0, .replacement = KC_NO, .options = ko_options_default, .custom_action = symbol_override_cb, .context = (void *)&name##_ctx, .enabled = &jis_override_enabled }
+#define WO_SHIFT(name, trigger_key, symbol_id) static const sym_override_ctx_t name##_ctx = { .sym = (symbol_id), .suppress_mods = 0 }; static const key_override_t name = { .trigger = (trigger_key), .trigger_mods = 0, .layers = ~0, .negative_mod_mask = NO_EXTRA_MODS, .suppressed_mods = 0, .replacement = KC_NO, .options = ko_options_default, .custom_action = symbol_override_cb, .context = (void *)&name##_ctx, .enabled = &jis_override_enabled }
+
+typedef struct {
+    symbol_t sym;
+    uint8_t suppress_mods;
+} sym_override_ctx_t;
+
+enum {
+    JIS_TOG = SAFE_RANGE, JIS_ON, JIS_OFF,
+};
+bool jis_override_enabled = true;
+
+
+static const char PROGMEM us_sym_grv[]  = "`";
+static const char PROGMEM us_sym_tild[] = "~";
+static const char PROGMEM us_sym_at[]   = "@";
+static const char PROGMEM us_sym_circ[] = "^";
+static const char PROGMEM us_sym_ampr[] = "&";
+static const char PROGMEM us_sym_astr[] = "*";
+static const char PROGMEM us_sym_lprn[] = "(";
+static const char PROGMEM us_sym_rprn[] = ")";
+static const char PROGMEM us_sym_unds[] = "_";
+static const char PROGMEM us_sym_eql[]  = "=";
+static const char PROGMEM us_sym_plus[] = "+";
+static const char PROGMEM us_sym_lbrc[] = "[";
+static const char PROGMEM us_sym_lcbr[] = "{";
+static const char PROGMEM us_sym_rbrc[] = "]";
+static const char PROGMEM us_sym_rcbr[] = "}";
+static const char PROGMEM us_sym_bsls[] = "\\";
+static const char PROGMEM us_sym_pipe[] = "|";
+static const char PROGMEM us_sym_coln[] = ":";
+static const char PROGMEM us_sym_quot[] = "'";
+static const char PROGMEM us_sym_dquo[] = "\"";
+
+static const char PROGMEM jis_sym_grv[]  = SEQ_JP_GRV;
+static const char PROGMEM jis_sym_tild[] = SEQ_JP_TILD;
+static const char PROGMEM jis_sym_at[]   = SEQ_JP_AT;
+static const char PROGMEM jis_sym_circ[] = SEQ_JP_CIRC;
+static const char PROGMEM jis_sym_ampr[] = SEQ_JP_AMPR;
+static const char PROGMEM jis_sym_astr[] = SEQ_JP_ASTR;
+static const char PROGMEM jis_sym_lprn[] = SEQ_JP_LPRN;
+static const char PROGMEM jis_sym_rprn[] = SEQ_JP_RPRN;
+static const char PROGMEM jis_sym_unds[] = SEQ_JP_UNDS;
+static const char PROGMEM jis_sym_eql[]  = SEQ_JP_EQL;
+static const char PROGMEM jis_sym_plus[] = SEQ_JP_PLUS;
+static const char PROGMEM jis_sym_lbrc[] = SEQ_JP_LBRC;
+static const char PROGMEM jis_sym_lcbr[] = SEQ_JP_LCBR;
+static const char PROGMEM jis_sym_rbrc[] = SEQ_JP_RBRC;
+static const char PROGMEM jis_sym_rcbr[] = SEQ_JP_RCBR;
+static const char PROGMEM jis_sym_bsls[] = SEQ_JP_BSLS;
+static const char PROGMEM jis_sym_pipe[] = SEQ_JP_PIPE;
+static const char PROGMEM jis_sym_coln[] = SEQ_JP_COLN;
+static const char PROGMEM jis_sym_quot[] = SEQ_JP_QUOT;
+static const char PROGMEM jis_sym_dquo[] = SEQ_JP_DQUO;
+
+static const char *const PROGMEM us_symbol_table[SYM__COUNT] = {
+    [SYM_GRV]  = us_sym_grv,
+    [SYM_TILD] = us_sym_tild,
+    [SYM_AT]   = us_sym_at,
+    [SYM_CIRC] = us_sym_circ,
+    [SYM_AMPR] = us_sym_ampr,
+    [SYM_ASTR] = us_sym_astr,
+    [SYM_LPRN] = us_sym_lprn,
+    [SYM_RPRN] = us_sym_rprn,
+    [SYM_UNDS] = us_sym_unds,
+    [SYM_EQL]  = us_sym_eql,
+    [SYM_PLUS] = us_sym_plus,
+    [SYM_LBRC] = us_sym_lbrc,
+    [SYM_LCBR] = us_sym_lcbr,
+    [SYM_RBRC] = us_sym_rbrc,
+    [SYM_RCBR] = us_sym_rcbr,
+    [SYM_BSLS] = us_sym_bsls,
+    [SYM_PIPE] = us_sym_pipe,
+    [SYM_COLN] = us_sym_coln,
+    [SYM_QUOT] = us_sym_quot,
+    [SYM_DQUO] = us_sym_dquo,
+};
+
+static const char *const PROGMEM jis_symbol_table[SYM__COUNT] = {
+    [SYM_GRV]  = jis_sym_grv,
+    [SYM_TILD] = jis_sym_tild,
+    [SYM_AT]   = jis_sym_at,
+    [SYM_CIRC] = jis_sym_circ,
+    [SYM_AMPR] = jis_sym_ampr,
+    [SYM_ASTR] = jis_sym_astr,
+    [SYM_LPRN] = jis_sym_lprn,
+    [SYM_RPRN] = jis_sym_rprn,
+    [SYM_UNDS] = jis_sym_unds,
+    [SYM_EQL]  = jis_sym_eql,
+    [SYM_PLUS] = jis_sym_plus,
+    [SYM_LBRC] = jis_sym_lbrc,
+    [SYM_LCBR] = jis_sym_lcbr,
+    [SYM_RBRC] = jis_sym_rbrc,
+    [SYM_RCBR] = jis_sym_rcbr,
+    [SYM_BSLS] = jis_sym_bsls,
+    [SYM_PIPE] = jis_sym_pipe,
+    [SYM_COLN] = jis_sym_coln,
+    [SYM_QUOT] = jis_sym_quot,
+    [SYM_DQUO] = jis_sym_dquo,
+};
+
+void emit_symbol(symbol_t sym) {
+    if (sym >= SYM__COUNT) {
+        return;
+    }
+
+    const char *seq;
+
+    if (jis_override_enabled) {
+        seq = (const char *)pgm_read_ptr(&jis_symbol_table[sym]);
+    } else {
+        seq = (const char *)pgm_read_ptr(&us_symbol_table[sym]);
+    }
+
+    if (seq != NULL) {
+        send_string_P(seq);
+    }
+}
+
+void emit_symbol_shifted(symbol_t normal_sym, symbol_t shifted_sym) {
+    if (get_mods() & MOD_MASK_SHIFT) {
+        emit_symbol(shifted_sym);
+    } else {
+        emit_symbol(normal_sym);
+    }
+}
+
 //for combo
 enum combos{
     CMB_00, CMB_01, CMB_02, CMB_03, CMB_04, CMB_05, CMB_06, CMB_07, CMB_08, CMB_09,
@@ -59,25 +235,8 @@ combo_t key_combos[] = {
     [CMB_15] = COMBO(combo_15, KC_NO),
 };
 
+
 // override
-#define NO_EXTRA_MODS (MOD_MASK_SHIFT | MOD_MASK_CTRL | MOD_MASK_ALT | MOD_MASK_GUI)
-//#define w_shift(trigger_key, replacement_key) { .trigger = (trigger_key), .replacement = (replacement_key), .trigger_mods = MOD_MASK_SHIFT, .suppressed_mods = MOD_MASK_SHIFT, .layers = ~0, .negative_mod_mask = 0, .options = ko_options_default, .enabled = &override_ej_enabled, }
-//#define wo_shift(trigger_key, replacement_key) { .trigger = (trigger_key), .replacement = (replacement_key), .trigger_mods = 0, .suppressed_mods = 0, .layers = ~0, .negative_mod_mask = NO_EXTRA_MODS, .options = ko_options_default, .enabled = &override_ej_enabled, }
-#define W_SHIFT(name, trigger_key, output_keycode) static const override_ctx_ej_t name##_ctx = { .out_keycode   = (output_keycode), .suppress_mods = MOD_MASK_SHIFT }; static const key_override_t name = { .trigger = (trigger_key), .trigger_mods = MOD_MASK_SHIFT, .layers = ~0, .negative_mod_mask = 0, .suppressed_mods = 0, .replacement = KC_NO, .options = ko_options_default, .custom_action = override_ej_send, .context = (void *)&name##_ctx, .enabled = &override_ej_enabled }
-#define WO_SHIFT(name, trigger_key, output_keycode) static const override_ctx_ej_t name##_ctx = { .out_keycode   = (output_keycode), .suppress_mods = 0 }; static const key_override_t name = { .trigger = (trigger_key), .trigger_mods = 0, .layers = ~0, .negative_mod_mask = NO_EXTRA_MODS, .suppressed_mods = 0, .replacement = KC_NO, .options = ko_options_default, .custom_action = override_ej_send, .context = (void *)&name##_ctx, .enabled = &override_ej_enabled }
-
-// override setting
-
-typedef struct {
-    uint16_t out_keycode;
-    uint8_t  suppress_mods;
-} override_ctx_ej_t;
-
-enum {
-    EJ_TGL = SAFE_RANGE, EJ_ON, EJ_OFF,
-};
-static bool override_ej_enabled = true;
-
 bool ovrca_del(bool activated, void *context){
     if (activated){
         uint8_t saved_mods = get_mods();
@@ -89,6 +248,7 @@ bool ovrca_del(bool activated, void *context){
     }
     return false;
 }
+
 const key_override_t override_al_del = {
     .trigger           = KC_BSPC,
     .replacement       = KC_DEL,
@@ -101,42 +261,42 @@ const key_override_t override_al_del = {
     .enabled           = NULL,
 };
 
-static bool override_ej_send(bool activated, void *context) {
+static bool symbol_override_cb(bool activated, void *context) {
     if (!activated || context == NULL) {
         return false;
     }
-    const override_ctx_ej_t *ctx = (const override_ctx_ej_t *)context;
+    const sym_override_ctx_t *ctx = (const sym_override_ctx_t *)context;
     uint8_t saved_mods = get_mods();
     if (ctx->suppress_mods) {
         del_mods(ctx->suppress_mods);
         send_keyboard_report();
     }
-    tap_code16(ctx->out_keycode);
+    emit_symbol(ctx->sym);
     set_mods(saved_mods);
     send_keyboard_report();
     return false;
 }
 
-W_SHIFT(ov_grv_tild,     KC_GRV,  JP_TILD);
-WO_SHIFT(ov_grv_grv,     KC_GRV,  JP_GRV);
-W_SHIFT(ov_2_at,         KC_2,    JP_AT);
-W_SHIFT(ov_6_circ,       KC_6,    JP_CIRC);
-W_SHIFT(ov_7_ampr,       KC_7,    JP_AMPR);
-W_SHIFT(ov_8_astr,       KC_8,    JP_ASTR);
-W_SHIFT(ov_9_lprn,       KC_9,    JP_LPRN);
-W_SHIFT(ov_0_rprn,       KC_0,    JP_RPRN);
-W_SHIFT(ov_mins_unds,    KC_MINS, JP_UNDS);
-WO_SHIFT(ov_eql_eq,      KC_EQL,  JP_EQL);
-W_SHIFT(ov_eql_plus,     KC_EQL,  JP_PLUS);
-WO_SHIFT(ov_lbrc_lbrc,   KC_LBRC, JP_LBRC);
-W_SHIFT(ov_lbrc_lcbr,    KC_LBRC, JP_LCBR);
-WO_SHIFT(ov_rbrc_rbrc,   KC_RBRC, JP_RBRC);
-W_SHIFT(ov_rbrc_rcbr,    KC_RBRC, JP_RCBR);
-WO_SHIFT(ov_bsls_bsls,   KC_BSLS, JP_BSLS);
-W_SHIFT(ov_bsls_pipe,    KC_BSLS, JP_PIPE);
-W_SHIFT(ov_scln_coln,    KC_SCLN, JP_COLN);
-W_SHIFT(ov_quot_dquo,    KC_QUOT, JP_DQUO);
-WO_SHIFT(ov_quot_quot,   KC_QUOT, JP_QUOT);
+W_SHIFT (ov_grv_tild,   KC_GRV,  SYM_TILD);
+WO_SHIFT(ov_grv_grv,    KC_GRV,  SYM_GRV);
+W_SHIFT (ov_2_at,       KC_2,    SYM_AT);
+W_SHIFT (ov_6_circ,     KC_6,    SYM_CIRC);
+W_SHIFT (ov_7_ampr,     KC_7,    SYM_AMPR);
+W_SHIFT (ov_8_astr,     KC_8,    SYM_ASTR);
+W_SHIFT (ov_9_lprn,     KC_9,    SYM_LPRN);
+W_SHIFT (ov_0_rprn,     KC_0,    SYM_RPRN);
+W_SHIFT (ov_mins_unds,  KC_MINS, SYM_UNDS);
+WO_SHIFT(ov_eql_eq,     KC_EQL,  SYM_EQL);
+W_SHIFT (ov_eql_plus,   KC_EQL,  SYM_PLUS);
+WO_SHIFT(ov_lbrc_lbrc,  KC_LBRC, SYM_LBRC);
+W_SHIFT (ov_lbrc_lcbr,  KC_LBRC, SYM_LCBR);
+WO_SHIFT(ov_rbrc_rbrc,  KC_RBRC, SYM_RBRC);
+W_SHIFT (ov_rbrc_rcbr,  KC_RBRC, SYM_RCBR);
+WO_SHIFT(ov_bsls_bsls,  KC_BSLS, SYM_BSLS);
+W_SHIFT (ov_bsls_pipe,  KC_BSLS, SYM_PIPE);
+W_SHIFT (ov_scln_coln,  KC_SCLN, SYM_COLN);
+W_SHIFT (ov_quot_dquo,  KC_QUOT, SYM_DQUO);
+WO_SHIFT(ov_quot_quot,  KC_QUOT, SYM_QUOT);
 
 const key_override_t *key_overrides[] = {
     &override_al_del,
@@ -433,7 +593,7 @@ void td_13(tap_dance_state_t *state, void *user_data){
     switch (td_state) {
         case TD_SINGLE_TAP:
         case TD_SINGLE_HOLD:
-            tap_code(KC_QUOT);
+            emit_symbol(SYM_QUOT);
             break;
         case TD_DOUBLE_TAP:
         case TD_DOUBLE_HOLD:
@@ -511,7 +671,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     ),
     [4] = LAYOUT_tkl_ansi(
         MO(4),   MD_BLE1, MD_BLE2,   MD_BLE3,  MD_24G,  KC_NO,  KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,    KC_DEL,  
-        KC_TAB,  KC_NO,    KC_NO,    KC_NO,    KC_NO,   KC_NO,  KC_NO,   EJ_TGL,  KC_NO,   KC_NO,   KC_NO,    KC_ENT,  
+        KC_TAB,  KC_NO,    KC_NO,    KC_NO,    KC_NO,   KC_NO,  KC_NO,   JIS_TOG, KC_NO,   KC_NO,   KC_NO,    KC_ENT,  
         KC_LSFT, KC_NO,    KC_NO,    KC_NO,    KC_NO,   KC_NO,  KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,    KC_NO,
         KC_LCTL, KC_LGUI,  KC_LALT,  KC_NO,    MO(3),           KC_SPC,  MO(3),   KC_NO,   KC_NO,   KC_NO,    KC_NO
     )
@@ -527,15 +687,15 @@ bool process_record_userfn(uint16_t keycode, keyrecord_t *record){
         return true;
     }
 
-    switch(keycode){
-        case EJ_TGL:
-            override_ej_enabled = !override_ej_enabled;
+    switch (keycode) {
+        case JIS_TOG:
+            jis_override_enabled = !jis_override_enabled;
             return false;
-        case EJ_ON:
-            override_ej_enabled = true;
+        case JIS_ON:
+            jis_override_enabled = true;
             return false;
-        case EJ_OFF:
-            override_ej_enabled = false;
+        case JIS_OFF:
+            jis_override_enabled = false;
             return false;
     }
     return true;
