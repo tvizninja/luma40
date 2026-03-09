@@ -504,10 +504,16 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_LCTL, KC_LGUI, KC_LALT, MS_BTN5,   MO(3),            KC_SPC,   MO(2),   KC_MENU, KC_HOME,  KC_PGDN,  KC_END
     ),
     [3] = LAYOUT_tkl_ansi(
-        KC_ESC,  MD_BLE1, MD_BLE2,   MD_BLE3,  MD_24G,     RM_NEXT,   KC_NO,    KC_NO,      KC_NO,             KC_NO,           KC_NO,    KC_DEL,  
-        KC_TAB,  KC_NO,    KC_NO,    KC_NO,    KC_NO,      KC_NO,     KC_NO,    EJ_TGL,     KC_NO,             KC_NO,           KC_NO,    KC_ENT,  
-        KC_LSFT, KC_NO,    KC_NO,    KC_NO,    KC_NO,      KC_NO,     KC_NO,    KC_KB_MUTE, KC_KB_VOLUME_DOWN, KC_KB_VOLUME_UP, KC_NO,    KC_NO,
-        KC_LCTL, KC_LGUI,  KC_LALT,  KC_NO,    MO(3),                 KC_SPC,   MO(3),      KC_NO,             KC_NO,           KC_NO,    KC_NO
+        MO(4),   KC_NO,    KC_NO,    KC_NO,    KC_NO,  KC_NO,  KC_NO,   KC_CPNL,  KC_BRID,  KC_BRIU,  RM_VALU,  KC_DEL,  
+        KC_TAB,  KC_NO,    KC_NO,    KC_NO,    KC_NO,  KC_NO,  KC_NO,   KC_MPLY,  KC_MPRV,  KC_MNXT,  RM_VALD,  KC_ENT,  
+        KC_LSFT, KC_NO,    KC_NO,    KC_NO,    KC_NO,  KC_NO,  KC_NO,   KC_MUTE,  KC_VOLD,  KC_VOLU,  RM_SATU,  RM_TOGG,
+        KC_LCTL, KC_LGUI,  KC_LALT,  KC_NO,    MO(3),          KC_SPC,  MO(3),    KC_NO,    RM_HUED,  RM_SATD,  RM_HUEU
+    ),
+    [4] = LAYOUT_tkl_ansi(
+        MO(4),   MD_BLE1, MD_BLE2,   MD_BLE3,  MD_24G,  KC_NO,  KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,    KC_DEL,  
+        KC_TAB,  KC_NO,    KC_NO,    KC_NO,    KC_NO,   KC_NO,  KC_NO,   EJ_TGL,  KC_NO,   KC_NO,   KC_NO,    KC_ENT,  
+        KC_LSFT, KC_NO,    KC_NO,    KC_NO,    KC_NO,   KC_NO,  KC_NO,   KC_NO,   KC_NO,   KC_NO,   KC_NO,    KC_NO,
+        KC_LCTL, KC_LGUI,  KC_LALT,  KC_NO,    MO(3),           KC_SPC,  MO(3),   KC_NO,   KC_NO,   KC_NO,    KC_NO
     )
 /*
         KC_TAB,  MD_BLE1, MD_BLE2,   MD_BLE3,  MD_24G,     RM_NEXT,   TO(1),    TO(0),   KC_LBRC, KC_RBRC,  KC_BSLS,  RGB_RTOG,  
