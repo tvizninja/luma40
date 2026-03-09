@@ -1,7 +1,4 @@
-/* Copyright 2025 Carlos Eduardo de Paula <carlosedp@gmail.com>
- * Copyright 2025 EPOMAKER <https://github.com/Epomaker>
- * Copyright 2023 LiWenLiu <https://github.com/LiuLiuQMK>
- * Copyright 2021 QMK <https://github.com/qmk/qmk_firmware>
+/* Copyright 2021 QMK
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,16 +14,3 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#pragma once
-
-#define HAL_USE_PWM TRUE
-
-#define ES32_PWM_USE_GP16C4T2 TRUE
-
-#define BACKLIGHT_PWM_DRIVER PWM_GP16C4T2
-#define BACKLIGHT_PWM_CHANNEL 3
-
-#define HAL_USE_USB TRUE
-#define HAL_USE_PAL TRUE
-
-#include_next <halconf.h>

@@ -1,4 +1,7 @@
-/* Copyright 2021 QMK
+/* Copyright 2025 Carlos Eduardo de Paula <carlosedp@gmail.com>
+ * Copyright 2025 EPOMAKER <https://github.com/Epomaker>
+ * Copyright 2023 LiWenLiu <https://github.com/LiuLiuQMK>
+ * Copyright 2021 QMK <https://github.com/qmk/qmk_firmware>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +19,7 @@
 
 #pragma once
 
-#define CH_CFG_ST_TIMEDELTA  0
+#define CH_CFG_ST_TIMEDELTA 0
 #define CH_CFG_ST_RESOLUTION 16
 
 #define CH_CFG_ST_FREQUENCY 1000

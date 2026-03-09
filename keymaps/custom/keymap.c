@@ -14,9 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 #include QMK_KEYBOARD_H
-#include "../../../lib/rdr_lib/rdr_common.h"
-#include "via.h"
-#include "dynamic_keymap.h"
+#include "rdmctmzt_common.h"
 #include "keymap_japanese.h"
 
 //for combo
@@ -54,7 +52,7 @@ combo_t key_combos[] = {
     [CMB_08] = COMBO(combo_08, LCTL(KC_X)),
     [CMB_09] = COMBO(combo_09, LCTL(KC_C)),
     [CMB_10] = COMBO(combo_10, LCTL(KC_V)),
-    [CMB_11] = COMBO(combo_11, KC_MS_BTN1),
+    [CMB_11] = COMBO(combo_11, MS_BTN1),
     [CMB_12] = COMBO(combo_12, KC_NO),
     [CMB_13] = COMBO(combo_13, KC_NO),
     [CMB_14] = COMBO(combo_14, KC_NO),
@@ -140,7 +138,7 @@ W_SHIFT(ov_scln_coln,    KC_SCLN, JP_COLN);
 W_SHIFT(ov_quot_dquo,    KC_QUOT, JP_DQUO);
 WO_SHIFT(ov_quot_quot,   KC_QUOT, JP_QUOT);
 
-const key_override_t **key_overrides = (const key_override_t *[]) {
+const key_override_t *key_overrides[] = {
     &override_al_del,
     &ov_grv_tild,
     &ov_grv_grv,
@@ -500,32 +498,23 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_LCTL, KC_LGUI,    KC_LALT,    KC_LNG2,    MO(1),                  KC_SPC,     MO(3),   KC_LNG1, KC_LEFT,  KC_DOWN,  KC_RGHT
     ),
     [2] = LAYOUT_tkl_ansi(
-        KC_ESC,  KC_MS_WH_LEFT, KC_MS_UP,     KC_MS_WH_RIGHT, KC_MS_WH_UP,   KC_NO,     KC_HOME,  KC_PGDN, KC_PGUP, KC_END,   KC_NO,    KC_DEL,  
-        KC_TAB,  KC_MS_LEFT,    KC_MS_DOWN,   KC_MS_RIGHT,    KC_MS_WH_DOWN, KC_NO,     KC_LEFT,  KC_DOWN, KC_UP,   KC_RGHT,  KC_NO,    KC_ENT,  
-        KC_LSFT, KC_MS_BTN1,    KC_MS_BTN3,   KC_MS_BTN2,     KC_MS_BTN4,    KC_NO,     KC_NO,    KC_NO,   KC_NO,   KC_NO,    KC_PGUP , KC_NO,
-        KC_LCTL, KC_LGUI,       KC_LALT,      KC_MS_BTN5,     MO(3),                    KC_SPC,   MO(2),   KC_MENU, KC_HOME,  KC_PGDN,  KC_END
+        KC_ESC,  MS_WHLL, MS_UP  , MS_WHLR, MS_WHLU, KC_NO,     KC_HOME,  KC_PGDN, KC_PGUP, KC_END,   KC_NO,    KC_DEL,  
+        KC_TAB,  MS_LEFT, MS_DOWN, MS_RGHT, MS_WHLD, KC_NO,     KC_LEFT,  KC_DOWN, KC_UP,   KC_RGHT,  KC_NO,    KC_ENT,  
+        KC_LSFT, MS_BTN1, MS_BTN3, MS_BTN2, MS_BTN4, KC_NO,     KC_NO,    KC_NO,   KC_NO,   KC_NO,    KC_PGUP , KC_NO,
+        KC_LCTL, KC_LGUI, KC_LALT, MS_BTN5,   MO(3),            KC_SPC,   MO(2),   KC_MENU, KC_HOME,  KC_PGDN,  KC_END
     ),
     [3] = LAYOUT_tkl_ansi(
-        KC_ESC,  MD_BLE1, MD_BLE2,   MD_BLE3,  MD_24G,     RGB_MOD,   KC_NO,    KC_NO,      KC_NO,             KC_NO,           KC_NO,    KC_DEL,  
+        KC_ESC,  MD_BLE1, MD_BLE2,   MD_BLE3,  MD_24G,     RM_NEXT,   KC_NO,    KC_NO,      KC_NO,             KC_NO,           KC_NO,    KC_DEL,  
         KC_TAB,  KC_NO,    KC_NO,    KC_NO,    KC_NO,      KC_NO,     KC_NO,    EJ_TGL,     KC_NO,             KC_NO,           KC_NO,    KC_ENT,  
         KC_LSFT, KC_NO,    KC_NO,    KC_NO,    KC_NO,      KC_NO,     KC_NO,    KC_KB_MUTE, KC_KB_VOLUME_DOWN, KC_KB_VOLUME_UP, KC_NO,    KC_NO,
         KC_LCTL, KC_LGUI,  KC_LALT,  KC_NO,    MO(3),                 KC_SPC,   MO(3),      KC_NO,             KC_NO,           KC_NO,    KC_NO
     )
 /*
-        KC_TAB,  MD_BLE1, MD_BLE2,   MD_BLE3,  MD_24G,     RGB_MOD,   TO(1),    TO(0),   KC_LBRC, KC_RBRC,  KC_BSLS,  RGB_RTOG,  
+        KC_TAB,  MD_BLE1, MD_BLE2,   MD_BLE3,  MD_24G,     RM_NEXT,   TO(1),    TO(0),   KC_LBRC, KC_RBRC,  KC_BSLS,  RGB_RTOG,  
         KC_LSFT, KC_INS,  KC_DEL,    KC_HOME,  KC_END,     KC_PGUP,   KC_PGDN,  RGB_SAD, RGB_HUD, RGB_HUI,  RGB_VAI , QK_BAT,
         KC_NO,   KC_DEL,  KC_GRV,    KC_LALT,  QK_WLO,                U_EE_CLR, RGB_SAI, KC_EQL,  RGB_SPD,  RGB_VAD,  RGB_SPI
 */
 };
-
-#if defined(ENCODER_MAP_ENABLE)
-const uint16_t PROGMEM encoder_map[][NUM_ENCODERS][2] = {
-    [0] = { ENCODER_CCW_CW(KC_AUDIO_VOL_DOWN, KC_AUDIO_VOL_UP) },
-    [1] = { ENCODER_CCW_CW(KC_AUDIO_VOL_DOWN, KC_AUDIO_VOL_UP) },
-    [2] = { ENCODER_CCW_CW(RGB_SAD, RGB_SAI) },
-    [3] = { ENCODER_CCW_CW(RGB_SPD, RGB_SPI) }
-};
-#endif
 
 bool process_record_userfn(uint16_t keycode, keyrecord_t *record){
     if(!record->event.pressed){

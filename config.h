@@ -1,5 +1,7 @@
-/* Copyright 2025 Epomaker
- * Copyright 2025 Epomaker <https://github.com/Epomaker>
+/* Copyright 2025 Carlos Eduardo de Paula <carlosedp@gmail.com>
+ * Copyright 2025 EPOMAKER <https://github.com/Epomaker>
+ * Copyright 2023 LiWenLiu <https://github.com/LiuLiuQMK>
+ * Copyright 2021 QMK <https://github.com/qmk/qmk_firmware>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 #pragma once
 
 /* Mechanical locking support. Use KC_LCAP, KC_LNUM or KC_LSCR instead in keymap */
@@ -21,35 +24,8 @@
 /* Locking resynchronize hack */
 #define LOCKING_RESYNC_ENABLE
 
-/* Define less important options */
-
-/*
- * Force NKRO
- *
- * Force NKRO (nKey Rollover) to be enabled by default, regardless of the saved
- * state in the bootmagic EEPROM settings. (Note that NKRO must be enabled in the
- * makefile for this to work.)
- *
- * If forced on, NKRO can be disabled via magic key (default = LShift+RShift+N)
- * until the next keyboard reset.
- *
- * NKRO may prevent your keystrokes from being detected in the BIOS, but it is
- * fully operational during normal computer usage.
- *
- * For a less heavy-handed approach, enable NKRO via magic key (LShift+RShift+N)
- * or via bootmagic (hold SPACE+N while plugging in the keyboard). Once set by
- * bootmagic, NKRO mode will always be enabled until it is toggled again during a
- * power-up.
- *
- */
-#define FORCE_NKRO
-/*
- * Feature disable options
- * These options are also useful to firmware size reduction.
- */
-
 #define MATRIX_UNSELECT_DRIVE_HIGH
-#define CORTEX_ENABLE_WFI_IDLE          FALSE
+#define CORTEX_ENABLE_WFI_IDLE FALSE
 
 /* Ensure we jump to bootloader if the RESET keycode was pressed */
 #define EARLY_INIT_PERFORM_BOOTLOADER_JUMP TRUE
@@ -57,8 +33,18 @@
 #define DEBOUNCE 5
 
 #ifndef NOP_FUDGE
-#define NOP_FUDGE 0.4
+#    define NOP_FUDGE 0.4
 #endif
+
+#define DYNAMIC_KEYMAP_EEPROM_MAX_ADDR 1151
+#define EEPROM_SIZE 1152
+#define FEE_PAGE_SIZE (0x200)
+#define FEE_PAGE_COUNT (8)
+#define FEE_PAGE_BASE_ADDRESS (0x1F000)
+#define FEE_MCU_FLASH_SIZE (0x1000)
+#define EECONFIG_USER_DATA_SIZE 4
+#define EECONFIG_KB_DATA_SIZE 1
+#define TRANSIENT_EEPROM_SIZE 4096
 
 #define RGB_MATRIX_LED_COUNT 47
 #define RGB_MATRIX_KEYPRESSES
@@ -68,3 +54,45 @@
 #define RGB_MATRIX_LED_FLUSH_LIMIT 16
 #define RGB_MATRIX_MAXIMUM_BRIGHTNESS 255
 #define RGB_MATRIX_SLEEP
+
+// LED
+#define RGB_MATRIX_DEFAULT_MODE RGB_MATRIX_SOLID_REACTIVE_CROSS
+#define RGB_MATRIX_DEFAULT_VAL  16
+#define RGB_MATRIX_DEFAULT_HUE  128
+#define RGB_MATRIX_DEFAULT_SAT  255
+
+// BLE configuration for LUMA40
+#define USER_BLE_ID (0X00A5) // LUMA40 BLE ID
+#define USER_BLE1_NAME "LUMA40-1"
+#define USER_BLE2_NAME "LUMA40-2"
+#define USER_BLE3_NAME "LUMA40-3"
+
+// LED Index Definitions for keyboard_common library
+#define LED_CONNECTION_INDEX 11 // Connection type indicator (BLE/2.4G/USB)
+#define LED_CAP_INDEX 12        // Caps Lock indicator
+#define LED_WIN_L_INDEX 40      // Win Lock indicator
+#define LED_BATT_INDEX 36       // Battery status indicator
+#define LED_BLE_1_INDEX 1       // 'Q' key position
+#define LED_BLE_2_INDEX 2       // 'W' key position
+#define LED_BLE_3_INDEX 3       // 'E' key position
+#define LED_2P4G_INDEX 4        // 'R' key position
+#define LED_USB_INDEX 5         // 'T' key position
+
+// MOUSEKEY
+#define MOUSEKEY_DELAY 10
+#define MOUSEKEY_INTERVAL 20
+#define MOUSEKEY_MOVE_DELTA 2
+#define MOUSEKEY_MAX_SPEED 16
+#define MOUSEKEY_TIME_TO_MAX 30
+#define MOUSEKEY_WHEEL_DELAY 10
+#define MOUSEKEY_WHEEL_INTERVAL 80
+#define MOUSEKEY_WHEEL_DELTA 1
+#define MOUSEKEY_WHEEL_MAX_SPEED 8
+#define MOUSEKEY_WHEEL_TIME_TO_MAX 100
+
+// OVERRIDE
+#define DUMMY_MOD_NEUTRALIZER_KEYCODE KC_F18
+#define MODS_TO_NEUTRALIZE { MOD_BIT(KC_LEFT_SHIFT) , MOD_BIT(KC_RIGHT_SHIFT) }
+
+// MACRO
+#define DYNAMIC_KEYMAP_MACRO_DELAY 8

@@ -1,5 +1,7 @@
-/* Copyright 2025 Epomaker
- * Copyright 2025 Epomaker <https://github.com/Epomaker>
+/* Copyright 2025 Carlos Eduardo de Paula <carlosedp@gmail.com>
+ * Copyright 2025 EPOMAKER <https://github.com/Epomaker>
+ * Copyright 2023 LiWenLiu <https://github.com/LiuLiuQMK>
+ * Copyright 2021 QMK <https://github.com/qmk/qmk_firmware>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,92 +17,81 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "../../../lib/rdr_lib/rdr_common.h"
+#include "keyboard_common.h"
 
 bool process_record_userfn(uint16_t keycode, keyrecord_t *record);
 void keyboard_post_init_userfn(void);
 
-/**********************系统函数***************************/
-/*  键盘扫描按键延时 */
-void matrix_io_delay(void) {
-}
+#ifndef NO_LED
+#    define NO_LED 255
+#endif
 
-void matrix_output_select_delay(void) {
-}
+// ===========================================================================
+// Keyboard-specific data
+// ===========================================================================
 
-void matrix_output_unselect_delay(uint8_t line, bool key_pressed) {
-}
+// Battery indicator LED indices (first row)
+const uint8_t Led_Batt_Index_Tab[BATTERY_LED_COUNT] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
 
-/*****************rgb矩阵驱动初始化********************/
-led_config_t g_led_config = { {
-	{ 0        , 1        , 2        , 3        , 4        , 5        , 6        , 7        , 8        , 9        , 10       , 11       },
-    { 12       , 13       , 14       , 15       , 16       , 17       , 18       , 19       , 20       , 21       , 22       , 23       }, 
-	{ 24       , 25       , 26       , 27       , 28       , 29       , 30       , 31       , 32       , 33       , 34       , 35       }, 
-	{ 36       , 37       , 38       , 39       , 40       , NO_LED   , 41       , 42       , 43       , 44       , 45       , 46       }
-},{
-    // 背光灯
-    { 0,  10},  { 20, 10},  { 40, 10},  { 60, 10}, { 80, 10}, { 100, 10}, { 120, 10}, { 140, 10}, { 160, 10}, { 180, 10}, { 200, 10}, { 224, 10}, 
-    { 0,  20},  { 20, 20},  { 40, 20},  { 60, 20}, { 80, 20}, { 100, 20}, { 120, 20}, { 140, 20}, { 160, 20}, { 180, 20}, { 200, 20}, { 224, 20}, 
-    { 0,  30},  { 20, 30},  { 40, 30},  { 60, 30}, { 80, 30}, { 100, 30}, { 120, 30}, { 140, 30}, { 160, 30}, { 180, 30}, { 200, 30}, { 224, 30}, 
-    { 0,  40},  { 20, 40},  { 40, 40},  { 60, 40}, { 80, 40},             { 110, 40}, { 140, 40}, { 160, 40}, { 180, 40}, { 200, 40}, { 224, 40}
-}, {
-    // 背光灯
-    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  
-    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  
-    1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  
-    1,  1,  1,  1,  1,      1,  1,  1,  1,  1,  1
-} };
+// ============================================================================
+// LED Matrix Configuration (keyboard-specific)
+// ============================================================================
+
+// clang-format off
+led_config_t g_led_config = {
+    // Key Matrix to LED Index (6x16 scan matrix with active keys in first 4 rows/12 cols)
+    {
+    {0,      1,      2,      3,      4,      5,      6,      7,      8,      9,      10,     11,     NO_LED, NO_LED, NO_LED, NO_LED},
+    {12,     13,     14,     15,     16,     17,     18,     19,     20,     21,     22,     23,     NO_LED, NO_LED, NO_LED, NO_LED},
+    {24,     25,     26,     27,     28,     29,     30,     31,     32,     33,     34,     35,     NO_LED, NO_LED, NO_LED, NO_LED},
+    {36,     37,     38,     39,     40,     NO_LED, 41,     42,     43,     44,     45,     46,     NO_LED, NO_LED, NO_LED, NO_LED},
+    {NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED},
+    {NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED}},
+    // LED Index to Physical Position
+    {
+    {0, 10}, {20, 10}, {40, 10}, {60, 10}, {80, 10}, {100, 10}, {120, 10}, {140, 10}, {160, 10}, {180, 10}, {200, 10}, {224, 10},
+    {0, 20}, {20, 20}, {40, 20}, {60, 20}, {80, 20}, {100, 20}, {120, 20}, {140, 20}, {160, 20}, {180, 20}, {200, 20}, {224, 20},
+    {0, 30}, {20, 30}, {40, 30}, {60, 30}, {80, 30}, {100, 30}, {120, 30}, {140, 30}, {160, 30}, {180, 30}, {200, 30}, {224, 30},
+    {0, 40}, {20, 40}, {40, 40}, {60, 40}, {80, 40},            {110, 40}, {140, 40}, {160, 40}, {180, 40}, {200, 40}, {224, 40}},
+    // LED Index to Flag
+    {
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+    1, 1, 1, 1, 1,    1, 1, 1, 1, 1, 1
+    }
+};
+// clang-format on
+
+// ============================================================================
+// QMK Callback Functions - Delegate to common implementations
+// ============================================================================
 
 bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
-    User_Led_Show();
-    return false;
+    return kb_rgb_matrix_indicators_common(led_min, led_max);
 }
 
-/************************休眠*****************************/
-void notify_usb_device_state_change_user(enum usb_device_state usb_device_state)  {
-    if (Keyboard_Info.Key_Mode == QMK_USB_MODE) {
-        if(usb_device_state == USB_DEVICE_STATE_CONFIGURED) {
-            Usb_If_Ok = true;//usb枚举完成
-            Usb_If_Ok_Led = true;
-            Usb_If_Ok_Delay = 0;
-        } else {
-            Usb_If_Ok = false;
-		    Usb_If_Ok_Led = false;
-        }
-    } else {
-        Usb_If_Ok = false;
-	    Usb_If_Ok_Led = false;
-    }
+void notify_usb_device_state_change_user(struct usb_device_state usb_device_state) {
+    kb_notify_usb_device_state_change(usb_device_state);
 }
 
+bool led_update_user(led_t led_state) {
+    return kb_led_update(led_state);
+}
 
 void housekeeping_task_user(void) {
-    User_Keyboard_Reset();
+    kb_housekeeping_task();
 }
 
 void board_init(void) {
-    User_Keyboard_Init();
+    kb_board_init();
 }
 
 void keyboard_post_init_user(void) {
-    if(User_State_Fulfill_Flag){
-        User_Keyboard_Reset();
-        User_State_Fulfill_Flag = 0x00;
-    }
-    keyboard_post_init_userfn();
+    kb_keyboard_post_init();
+    keyboard_post_init_userfn(); 
 }
 
-void User_Consumer_Send(uint16_t Code, bool Status) {
-    if (Status) {
-        register_code(Code);
-    } else {
-        unregister_code(Code);
-    }
-}
-
-bool process_record_user(uint16_t keycode, keyrecord_t *record) {   /*键盘只要有按键按下就会调用此函数*/
-    Usb_Change_Mode_Delay = 0;                                      /*只要有按键就不会进入休眠*/
-    Usb_Change_Mode_Wakeup = false;
-
-    return process_record_userfn(keycode, record) || Key_Value_Dispose(keycode, record);
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+    return process_record_userfn(keycode, record) || kb_process_record_common(keycode, record);
 }

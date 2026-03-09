@@ -1,19 +1,17 @@
-# Epomaker Luma40
+# EPOMAKER LUMA40
 
-A customizable 47key keyboard.
+A customizable 40-key keyboard.
 
-![Epomaker Luma40](https://imgur.com/a/jNr48Gx)
-
-* Keyboard Maintainer: [Epomaker](https://github.com/Epomaker)
-* Hardware Supported: Epomaker Luma40 PCB with es32fs026 microcontroller
+* Keyboard Maintainer: [EPOMAKER](https://github.com/Epomaker)
+* Hardware Supported: EPOMAKER LUMA40 PCB with es32fs026 microcontroller
 
 Make example for this keyboard (after setting up your build environment):
 
-    make luma40/luma40:default
+    make epomaker/luma40:default
 
 Flashing example for this keyboard:
 
-    make luma40/luma40:default:flash
+    make epomaker/luma40:default:flash
 
 See the [build environment setup](https://docs.qmk.fm/#/getting_started_build_tools) and the [make instructions](https://docs.qmk.fm/#/getting_started_make_guide) for more information. Brand new to QMK? Start with our [Complete Newbs Guide](https://docs.qmk.fm/#/newbs).
 

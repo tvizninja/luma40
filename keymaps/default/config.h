@@ -16,17 +16,4 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-#pragma once
-
-#define HAL_USE_PWM TRUE
-
-#define ES32_PWM_USE_GP16C4T2 TRUE
-
-#define BACKLIGHT_PWM_DRIVER PWM_GP16C4T2
-#define BACKLIGHT_PWM_CHANNEL 3
-
-#define HAL_USE_USB TRUE
-#define HAL_USE_PAL TRUE
-
-#include_next <halconf.h>
+// Custom configuration
