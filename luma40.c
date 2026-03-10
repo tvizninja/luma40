@@ -93,5 +93,8 @@ void keyboard_post_init_user(void) {
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    return process_record_userfn(keycode, record) || kb_process_record_common(keycode, record);
+    if(process_record_userfn(keycode, record)){
+        return kb_process_record_common(keycode, record);
+    }
+    return false;
 }
