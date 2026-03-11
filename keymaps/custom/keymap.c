@@ -53,7 +53,7 @@ jis_t get_jis_map(uint16_t keycode, bool shifted) {
         case KC_2:    return shifted ? (jis_t){KC_LBRC, false} : (jis_t){KC_NO, false}; // @
         case KC_6:    return shifted ? (jis_t){KC_EQL,  false} : (jis_t){KC_NO, false}; // ^
         case KC_7:    return shifted ? (jis_t){KC_6,    true}  : (jis_t){KC_NO, false}; // &
-        case KC_8:    return shifted ? (jis_t){KC_7,    true}  : (jis_t){KC_NO, false}; // *
+        case KC_8:    return shifted ? (jis_t){KC_QUOT, true}  : (jis_t){KC_NO, false}; // *
         case KC_9:    return shifted ? (jis_t){KC_8,    true}  : (jis_t){KC_NO, false}; // (
         case KC_0:    return shifted ? (jis_t){KC_9,    true}  : (jis_t){KC_NO, false}; // )
         case KC_MINS: return shifted ? (jis_t){KC_INT1, true}  : (jis_t){KC_NO, false}; // _
@@ -282,8 +282,9 @@ void keyboard_post_init_userfn(void) {
 }
 
 // --- proc ---
-static uint16_t last_jis_kc = KC_NO;
-static uint8_t  last_jis_mods = 0;
+static uint16_t jis_active_keys[256] = {0};
+static uint8_t  jis_press_count = 0;
+static uint8_t  jis_initial_mods = 0;
 
 bool process_record_userfn(uint16_t keycode, keyrecord_t *record) {
     if (keycode == JIS_TG || keycode == JIS_ON || keycode == JIS_OF) {
@@ -293,13 +294,17 @@ bool process_record_userfn(uint16_t keycode, keyrecord_t *record) {
         }
         return false;
     }
-    if (is_jis_active) {
+    if (is_jis_active && keycode < 256) {
         if (record->event.pressed) {
-            uint8_t current_mods = get_mods();
-            jis_t out = get_jis_map(keycode, (current_mods & MOD_MASK_SHIFT));
+            uint8_t effective_mods = (jis_press_count > 0) ? jis_initial_mods : get_mods();
+            bool shifted = (effective_mods & MOD_MASK_SHIFT);
+            jis_t out = get_jis_map(keycode, shifted);
             if (out.kc != KC_NO) {
-                last_jis_kc = out.kc;
-                last_jis_mods = current_mods;
+                if (jis_press_count == 0) {
+                    jis_initial_mods = get_mods(); 
+                }
+                jis_active_keys[keycode] = out.kc;
+                jis_press_count++;
                 del_mods(MOD_MASK_SHIFT);
                 send_keyboard_report();
                 if (out.s) add_mods(MOD_BIT_LSHIFT);
@@ -308,16 +313,19 @@ bool process_record_userfn(uint16_t keycode, keyrecord_t *record) {
                 return false; 
             }
         } else {
-            if (last_jis_kc != KC_NO) {
-                unregister_code(last_jis_kc);
-                set_mods(last_jis_mods);
-                send_keyboard_report();
-                last_jis_kc = KC_NO;
+            if (jis_active_keys[keycode] != 0) {
+                unregister_code(jis_active_keys[keycode]);
+                jis_active_keys[keycode] = 0;
+                if (jis_press_count > 0) jis_press_count--;
+                if (jis_press_count == 0) {
+                    set_mods(jis_initial_mods);
+                    send_keyboard_report();
+                }
                 return false;
             }
         }
     }
-    return true;
+    return true; 
 }
 
 // keymap
@@ -347,7 +355,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         KC_LCTL,  KC_LGUI,  KC_LALT,  KC_NO,    MO(3),              KC_SPC,   MO(3),    KC_NO,    RM_HUED,  RM_SATD,  RM_HUEU
     ),
     [4] = LAYOUT_tkl_ansi(
-        MO(4),    MD_BLE1,  MD_BLE2,  MD_BLE3,  MD_24G,   KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_DEL,  
+        MO(4),    MD_BLE1,  MD_BLE2,  MD_BLE3,  MD_24G,   MD_USB,   KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_DEL,  
         KC_TAB,   KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    JIS_TG,   KC_NO,    KC_NO,    KC_NO,    KC_ENT,  
         KC_LSFT,  KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,
         KC_LCTL,  KC_LGUI,  KC_LALT,  KC_NO,    MO(3),              KC_SPC,   MO(3),    KC_NO,    KC_NO,    KC_NO,    KC_NO
