@@ -15,11 +15,19 @@
  */
 
 #include QMK_KEYBOARD_H
+#include <string.h>
 #include "send_string.h"
+#include "eeprom.h"
 #include "dynamic_keymap.h"
 #include "rdmctmzt_common.h"
 
 // --- struct and define ---
+#define MACRO_BASE_SIZE 64
+#define EE_MAGIC_VIA_INIT 0xABCD
+#ifndef EECONFIG_USER
+#    define EECONFIG_USER (uint16_t*)200 
+#endif
+
 typedef struct {
     uint16_t kc;
     bool s;
@@ -43,7 +51,11 @@ typedef enum { TD_NONE, TD_T1, TD_H1, TD_T2, TD_H2 } td_state_t;
 
 enum custom_keycodes {
     JIS_TG = SAFE_RANGE, JIS_ON, JIS_OF,
+    MCR_00, MCR_01, MCR_02, MCR_03, MCR_04, MCR_05, MCR_06, MCR_07,
+    MCR_08, MCR_09, MCR_10, MCR_11, MCR_12, MCR_13, MCR_14, MCR_15,
 };
+
+#define MCR(idx) (MCR_00 + idx)
 
 // --- eng to jis ---
 static bool is_jis_active = true;
@@ -183,7 +195,7 @@ void generic_quad_reset(tap_dance_state_t *state, void *user_data) {
     X(12,  K(KC_QUOT),  K(KC_DQUO),  K(KC_LNG2),K(KC_LNG1)) \
     X(13,  K(KC_SPC),   L(1),        K(KC_LNG2),L(1)   ) \
     X(14,  K(KC_ENT),   L(2),        K(KC_LNG1),L(2)   ) \
-    X(15,  K(KC_APP),   K(S(KC_APP)),K(KC_LNG1),K(KC_LNG2))
+    X(15,  K(KC_APP),   M(0),        K(S(KC_APP)),M(0))
 
 #define X(id, t1, h1, t2, h2) \
     static td_quad_ctx_t td_q_##id = { {t1}, {h1}, {t2}, {h2}, {AT_KEY, KC_NO} };
@@ -209,7 +221,13 @@ tap_dance_action_t tap_dance_actions[] = {
     X(CB_CX,    C(KC_X),      KC_TAB,  KC_X) \
     X(CB_CC,    C(KC_C),      KC_TAB,  KC_C) \
     X(CB_CV,    C(KC_V),      KC_TAB,  KC_V) \
-    X(CB_BTN1,  MS_BTN1,      KC_LSFT, KC_Z)
+    X(CB_BTN1,  MS_BTN1,      KC_LSFT, KC_Z) \
+    X(CB_BTN3,  MS_BTN3,      KC_LSFT, KC_X) \
+    X(CB_BTN2,  MS_BTN2,      KC_LSFT, KC_C) \
+    X(CB_BSPC,  KC_BSPC,      KC_S,    KC_D) \
+    X(CB_DEL ,  KC_DEL,       KC_D,    KC_F) \
+    X(CB_HNZN,  MCR(6),       KC_J,    KC_K) \
+    X(CB_ENT ,  KC_ENT,       KC_K,    KC_L)
 
 enum combo_names {
     #define X(name, res, ...) name,
@@ -229,43 +247,59 @@ combo_t key_combos[] = {
 };
 
 // --- override ---
+#define MOD_MASK_ALL (MOD_MASK_SHIFT | MOD_MASK_CTRL | MOD_MASK_GUI | MOD_MASK_ALT)
 #define OVERRIDES_LIST \
-    X(KO_S_BS,   KC_BSPC, KC_DEL,  MOD_MASK_SHIFT)
+    X(KO_S_BS,  KC_BSPC, KC_BSPC, MOD_MASK_SHIFT, 0, 0)
 
-#define X(name, trig, repl, mask) \
+/*
+    X(KO_0_NP,  KC_0,    KC_P0,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_1_NP,  KC_1,    KC_P1,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_2_NP,  KC_2,    KC_P2,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_3_NP,  KC_3,    KC_P3,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_4_NP,  KC_4,    KC_P4,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_5_NP,  KC_5,    KC_P5,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_6_NP,  KC_6,    KC_P6,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_7_NP,  KC_7,    KC_P7,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_8_NP,  KC_8,    KC_P8,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_9_NP,  KC_9,    KC_P9,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_S_BS,  KC_BSPC, KC_DEL,  MOD_MASK_SHIFT, 0, 0)
+*/
+
+#define X(name, trig, repl, mask, neg, suppressed) \
     static const key_override_t name = { \
-        .trigger           = trig, \
-        .replacement       = repl, \
-        .layers            = ~(layer_state_t)0, \
-        .trigger_mods      = mask, \
-        .negative_mod_mask = 0, \
-        .suppressed_mods   = mask, \
-        .options           = ko_options_default, \
-        .custom_action     = NULL \
+        .trigger          = trig, \
+        .replacement      = repl, \
+        .layers           = ~(layer_state_t)0, \
+        .trigger_mods     = mask, \
+        .negative_mod_mask = neg, \
+        .suppressed_mods  = suppressed, \
+        .options          = ko_options_default, \
+        .custom_action    = NULL \
     };
 OVERRIDES_LIST
 #undef X
 
-const key_override_t *key_overrides[] = {
-    #define X(name, trig, repl, mask) &name,
+const key_override_t *const key_overrides[] = {
+    #define X(name, trig, repl, mask, neg, suppressed) &name,
     OVERRIDES_LIST
     #undef X
+    NULL
 };
 
 // --- macro ---
-static void seed_via_macros_if_empty(void) {
+void eeconfig_init_user(void) {
+    eeprom_write_word(EECONFIG_USER, EE_MAGIC_VIA_INIT);
     uint8_t first = 0;
     dynamic_keymap_macro_get_buffer(0, 1, &first);
-
     if (first == 0) {
         static uint8_t defaults[] =
-            "\0" //macro0
+            SS_DOWN(X_LGUI) SS_DOWN(X_LSFT) SS_TAP(X_F23) SS_UP(X_LSFT) SS_UP(X_LGUI) "\0" //macro0
             SS_LCTL("a") "\0" //macro1
             "\0" //macro2
             "\0" //macro3
             SS_LGUI("r") "\0" //macro4
             "%UserProfile%/Downloads/\0" //macro5
-            "\0" //macro6
+            SS_DOWN(X_LALT) SS_TAP(X_GRAVE) SS_UP(X_LALT) "\0" //macro6
             "\0" //macro7
             "\0" //macro8
             "\0" //macro9
@@ -278,7 +312,9 @@ static void seed_via_macros_if_empty(void) {
 }
 
 void keyboard_post_init_userfn(void) {
-    seed_via_macros_if_empty();
+    if (eeprom_read_word((uint16_t*)EECONFIG_USER) != EE_MAGIC_VIA_INIT) {
+        eeconfig_init_user(); 
+    }
 }
 
 // --- proc ---
@@ -291,6 +327,12 @@ bool process_record_userfn(uint16_t keycode, keyrecord_t *record) {
         if (record->event.pressed) {
             if (keycode == JIS_TG) is_jis_active = !is_jis_active;
             else is_jis_active = (keycode == JIS_ON);
+        }
+        return false;
+    }
+    if (MCR_00 <= keycode && keycode <= MCR_15) {
+        if (record->event.pressed) {
+            dynamic_keymap_macro_send(keycode - MCR_00);
         }
         return false;
     }
