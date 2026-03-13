@@ -247,9 +247,8 @@ combo_t key_combos[] = {
 };
 
 // --- override ---
-#define MOD_MASK_ALL (MOD_MASK_SHIFT | MOD_MASK_CTRL | MOD_MASK_GUI | MOD_MASK_ALT)
 #define OVERRIDES_LIST \
-    X(KO_S_BS,  KC_BSPC, KC_BSPC, MOD_MASK_SHIFT, 0, 0)
+    X(KO_S_BS,  KC_SPC, KC_DEL, MOD_MASK_SHIFT, 0, 0)
 
 /*
     X(KO_0_NP,  KC_0,    KC_P0,   0, MOD_MASK_SHIFT, 0) \
@@ -318,11 +317,14 @@ void keyboard_post_init_userfn(void) {
 }
 
 // --- proc ---
+static bool     physical_shift_held = false;
 static uint16_t jis_active_keys[256] = {0};
 static uint8_t  jis_press_count = 0;
-static uint8_t  jis_initial_mods = 0;
 
 bool process_record_userfn(uint16_t keycode, keyrecord_t *record) {
+    if (keycode == KC_LSFT || keycode == KC_RSFT) {
+        physical_shift_held = record->event.pressed;
+    }
     if (keycode == JIS_TG || keycode == JIS_ON || keycode == JIS_OF) {
         if (record->event.pressed) {
             if (keycode == JIS_TG) is_jis_active = !is_jis_active;
@@ -338,20 +340,15 @@ bool process_record_userfn(uint16_t keycode, keyrecord_t *record) {
     }
     if (is_jis_active && keycode < 256) {
         if (record->event.pressed) {
-            uint8_t effective_mods = (jis_press_count > 0) ? jis_initial_mods : get_mods();
-            bool shifted = (effective_mods & MOD_MASK_SHIFT);
-            jis_t out = get_jis_map(keycode, shifted);
+            jis_t out = get_jis_map(keycode, physical_shift_held);
             if (out.kc != KC_NO) {
-                if (jis_press_count == 0) {
-                    jis_initial_mods = get_mods(); 
-                }
                 jis_active_keys[keycode] = out.kc;
                 jis_press_count++;
-                del_mods(MOD_MASK_SHIFT);
+                set_mods(out.s ? MOD_BIT_LSHIFT : 0);
                 send_keyboard_report();
-                if (out.s) add_mods(MOD_BIT_LSHIFT);
                 register_code(out.kc);
-                if (out.s) del_mods(MOD_BIT_LSHIFT);
+                set_mods(physical_shift_held ? MOD_BIT_LSHIFT : 0);
+                send_keyboard_report();
                 return false; 
             }
         } else {
@@ -360,10 +357,10 @@ bool process_record_userfn(uint16_t keycode, keyrecord_t *record) {
                 jis_active_keys[keycode] = 0;
                 if (jis_press_count > 0) jis_press_count--;
                 if (jis_press_count == 0) {
-                    set_mods(jis_initial_mods);
+                    set_mods(physical_shift_held ? MOD_BIT_LSHIFT : 0);
                     send_keyboard_report();
-                }
                 return false;
+                }
             }
         }
     }
