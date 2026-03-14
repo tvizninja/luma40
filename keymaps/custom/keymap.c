@@ -19,8 +19,6 @@
 #include "rdmctmzt_common.h"
 
 // --- struct and define ---
-#define MACRO_BASE_SIZE 128
-
 enum custom_keycodes {
     JE_TOG = SAFE_RANGE, JE_ON, JE_OF,
     JE_2, JE_6, JE_7, JE_8, JE_9, JE_0,
@@ -173,7 +171,7 @@ tap_dance_action_t tap_dance_actions[] = {
     X(CB_BTN2,  MS_BTN2,      KC_LSFT, KC_C) \
     X(CB_BSPC,  KC_BSPC,      KC_S,    KC_D) \
     X(CB_DEL ,  KC_DEL,       KC_D,    KC_F) \
-    X(CB_HNZN,  MCR(13),      KC_J,    KC_K) \
+    X(CB_HNZN,  MCR(0),       KC_J,    KC_K) \
     X(CB_CUT ,  C(KC_X),      KC_Z,    KC_X) \
     X(CB_CPY ,  C(KC_C),      KC_Z,    KC_C) \
     X(CB_PST ,  C(KC_V),      KC_Z,    KC_V) \
@@ -239,20 +237,20 @@ const key_override_t *const key_overrides[] = {
 
 // --- macro ---
 static uint8_t default_macros[] PROGMEM =
-    SS_DOWN(X_LGUI) SS_DOWN(X_LSFT) SS_TAP(X_F23) SS_UP(X_LSFT) SS_UP(X_LGUI) "\0" //macro0
+    SS_DOWN(X_LALT) SS_TAP(X_GRAVE) SS_UP(X_LALT) "\0" //macro0
     SS_LCTL("a") "\0" //macro1
     SS_DOWN(X_LGUI) SS_DOWN(X_LSFT) SS_TAP(X_S) SS_UP(X_LSFT) SS_UP(X_LGUI) "\0" //macro2
     SS_LGUI("e") "\0" //macro3
     SS_LGUI("r") "\0" //macro4
     "%UserProfile%/Downloads/\0" //macro5
-    "allow pasting\0" //macro6
+    "\0" //macro6
     "\0" //macro7
     "\0" //macro8
     "\0" //macro9
     "\0" //macro10
     "\0" //macro11
     "\0" //macro12
-    SS_DOWN(X_LALT) SS_TAP(X_GRAVE) SS_UP(X_LALT) "\0" //macro13
+    SS_DOWN(X_LGUI) SS_DOWN(X_LSFT) SS_TAP(X_F23) SS_UP(X_LSFT) SS_UP(X_LGUI) "\0" //macro13
     "\0" //macro14
     "\0" //macro15
 ;
