@@ -18,7 +18,6 @@
 #include <string.h>
 #include "send_string.h"
 #include "eeprom.h"
-#include "keymap_japanese.h"
 #include "dynamic_keymap.h"
 #include "rdmctmzt_common.h"
 
@@ -73,10 +72,10 @@ jis_t get_jis_map(uint16_t keycode, bool shifted) {
         case KC_EQL:  return shifted ? (jis_t){KC_SCLN, true}  : (jis_t){KC_MINS, true}; // + / =
         case KC_LBRC: return shifted ? (jis_t){KC_RBRC, true}  : (jis_t){KC_RBRC, false}; // { / [
         case KC_RBRC: return shifted ? (jis_t){KC_NUHS, true}  : (jis_t){KC_NUHS, false}; // } / ]
-        case KC_SCLN: return shifted ? (jis_t){KC_QUOT, false} : (jis_t){KC_NO, false}; // : /
+        case KC_SCLN: return shifted ? (jis_t){KC_QUOT, false} : (jis_t){KC_NO, false}; // : / ( ; は共通)
         case KC_QUOT: return shifted ? (jis_t){KC_2,    true}  : (jis_t){KC_7,    true}; // " / '
         case KC_GRV:  return shifted ? (jis_t){KC_EQL,  true}  : (jis_t){KC_LBRC, true}; // ~ / `
-        case KC_BSLS: return shifted ? (jis_t){KC_INT3, true}  : (jis_t){KC_INT3, false}; // | / \ 
+        case KC_BSLS: return shifted ? (jis_t){KC_INT3, true}  : (jis_t){KC_INT3, false}; // | / \ (JIS)
         default:      return (jis_t){KC_NO, false};
     }
 }
@@ -248,29 +247,22 @@ combo_t key_combos[] = {
 };
 
 // --- override ---
-    //X(KO_S_BS,  KC_BSPC, KC_DEL, MOD_MASK_SHIFT, 0, MOD_MASK_SHIFT) \ //wshift
-    //X(KO_0_NP,  KC_0,    KC_P0,   0, MOD_MASK_SHIFT, 0) \ //woshift
 #define OVERRIDES_LIST \
-    X(KO_JTILD,  KC_GRV, JP_TILD, MOD_MASK_SHIFT, 0, MOD_MASK_SHIFT) \
-    X(KO_JGRV,   KC_GRV, JP_GRV,  0, MOD_MASK_SHIFT, 0) \
-    X(KO_JAT,    KC_2,   JP_AT,   MOD_MASK_SHIFT, 0, MOD_MASK_SHIFT) \
-    X(KO_JCIRC,  KC_6,   JP_CIRC, MOD_MASK_SHIFT, 0, MOD_MASK_SHIFT) \
-    X(KO_JAMPR,  KC_7,   JP_AMPR, MOD_MASK_SHIFT, 0, MOD_MASK_SHIFT) \
-    X(KO_JASTR,  KC_8,   JP_ASTR, MOD_MASK_SHIFT, 0, MOD_MASK_SHIFT) \
-    X(KO_JLPRN,  KC_9,   JP_LPRN, MOD_MASK_SHIFT, 0, MOD_MASK_SHIFT) \
-    X(KO_JRPRN,  KC_0,   JP_RPRN, MOD_MASK_SHIFT, 0, MOD_MASK_SHIFT) \
-    X(KO_JUNDS,  KC_MINS,JP_UNDS, MOD_MASK_SHIFT, 0, MOD_MASK_SHIFT) \
-    X(KO_JEQL,   KC_EQL, JP_EQL,  0, MOD_MASK_SHIFT, 0) \
-    X(KO_JPLUS,  KC_EQL, JP_PLUS, MOD_MASK_SHIFT, 0, MOD_MASK_SHIFT) \
-    X(KO_JLBRC,  KC_LBRC,JP_LBRC,  0, MOD_MASK_SHIFT, 0) \
-    X(KO_JLCBR,  KC_LBRC,JP_LCBR, MOD_MASK_SHIFT, 0, MOD_MASK_SHIFT) \
-    X(KO_JRBRC,  KC_RBRC,JP_RBRC,  0, MOD_MASK_SHIFT, 0) \
-    X(KO_JRCBR,  KC_RBRC,JP_RCBR, MOD_MASK_SHIFT, 0, MOD_MASK_SHIFT) \
-    X(KO_JBSLS,  KC_BSLS,JP_BSLS,  0, MOD_MASK_SHIFT, 0) \
-    X(KO_JPIPE,  KC_BSLS,JP_PIPE, MOD_MASK_SHIFT, 0, MOD_MASK_SHIFT) \
-    X(KO_JCOLN,  KC_SCLN,JP_COLN, MOD_MASK_SHIFT, 0, MOD_MASK_SHIFT) \
-    X(KO_JQUOT,  KC_QUOT,JP_QUOT,  0, MOD_MASK_SHIFT, 0) \
-    X(KO_JDQUO,  KC_QUOT,JP_DQUO, MOD_MASK_SHIFT, 0, MOD_MASK_SHIFT)
+    X(KO_S_BS,  KC_SPC, KC_DEL, MOD_MASK_SHIFT, 0, 0)
+
+/*
+    X(KO_0_NP,  KC_0,    KC_P0,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_1_NP,  KC_1,    KC_P1,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_2_NP,  KC_2,    KC_P2,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_3_NP,  KC_3,    KC_P3,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_4_NP,  KC_4,    KC_P4,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_5_NP,  KC_5,    KC_P5,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_6_NP,  KC_6,    KC_P6,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_7_NP,  KC_7,    KC_P7,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_8_NP,  KC_8,    KC_P8,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_9_NP,  KC_9,    KC_P9,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_S_BS,  KC_BSPC, KC_DEL,  MOD_MASK_SHIFT, 0, 0)
+*/
 
 #define X(name, trig, repl, mask, neg, suppressed) \
     static const key_override_t name = { \
@@ -281,8 +273,7 @@ combo_t key_combos[] = {
         .negative_mod_mask = neg, \
         .suppressed_mods  = suppressed, \
         .options          = ko_options_default, \
-        .custom_action    = NULL, \
-        .enabled          = &is_jis_active \
+        .custom_action    = NULL \
     };
 OVERRIDES_LIST
 #undef X
@@ -326,7 +317,14 @@ void keyboard_post_init_userfn(void) {
 }
 
 // --- proc ---
+static bool     physical_shift_held = false;
+static uint16_t jis_active_keys[256] = {0};
+static uint8_t  jis_press_count = 0;
+
 bool process_record_userfn(uint16_t keycode, keyrecord_t *record) {
+    if (keycode == KC_LSFT || keycode == KC_RSFT) {
+        physical_shift_held = record->event.pressed;
+    }
     if (keycode == JIS_TG || keycode == JIS_ON || keycode == JIS_OF) {
         if (record->event.pressed) {
             if (keycode == JIS_TG) is_jis_active = !is_jis_active;
@@ -339,6 +337,32 @@ bool process_record_userfn(uint16_t keycode, keyrecord_t *record) {
             dynamic_keymap_macro_send(keycode - MCR_00);
         }
         return false;
+    }
+    if (is_jis_active && keycode < 256) {
+        if (record->event.pressed) {
+            jis_t out = get_jis_map(keycode, physical_shift_held);
+            if (out.kc != KC_NO) {
+                jis_active_keys[keycode] = out.kc;
+                jis_press_count++;
+                set_mods(out.s ? MOD_BIT_LSHIFT : 0);
+                send_keyboard_report();
+                register_code(out.kc);
+                set_mods(physical_shift_held ? MOD_BIT_LSHIFT : 0);
+                send_keyboard_report();
+                return false; 
+            }
+        } else {
+            if (jis_active_keys[keycode] != 0) {
+                unregister_code(jis_active_keys[keycode]);
+                jis_active_keys[keycode] = 0;
+                if (jis_press_count > 0) jis_press_count--;
+                if (jis_press_count == 0) {
+                    set_mods(physical_shift_held ? MOD_BIT_LSHIFT : 0);
+                    send_keyboard_report();
+                return false;
+                }
+            }
+        }
     }
     return true; 
 }
