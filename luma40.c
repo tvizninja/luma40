@@ -20,7 +20,6 @@
 #include "keyboard_common.h"
 
 bool process_record_userfn(uint16_t keycode, keyrecord_t *record);
-void keyboard_post_init_userfn(void);
 
 #ifndef NO_LED
 #    define NO_LED 255
@@ -89,7 +88,6 @@ void board_init(void) {
 
 void keyboard_post_init_user(void) {
     kb_keyboard_post_init();
-    keyboard_post_init_userfn(); 
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {

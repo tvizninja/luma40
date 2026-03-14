@@ -15,15 +15,11 @@
  */
 
 #include QMK_KEYBOARD_H
-#include "eeprom.h"
+#include "dynamic_keymap.h"
 #include "rdmctmzt_common.h"
 
 // --- struct and define ---
 #define MACRO_BASE_SIZE 128
-#define EE_MAGIC_VIA_INIT 0xABCD
-#ifndef EECONFIG_USER
-#    define EECONFIG_USER (uint16_t*)200 
-#endif
 
 enum custom_keycodes {
     JE_TOG = SAFE_RANGE, JE_ON, JE_OF,
@@ -177,8 +173,14 @@ tap_dance_action_t tap_dance_actions[] = {
     X(CB_BTN2,  MS_BTN2,      KC_LSFT, KC_C) \
     X(CB_BSPC,  KC_BSPC,      KC_S,    KC_D) \
     X(CB_DEL ,  KC_DEL,       KC_D,    KC_F) \
-    X(CB_HNZN,  MCR(6),       KC_J,    KC_K) \
+    X(CB_HNZN,  MCR(13),      KC_J,    KC_K) \
+    X(CB_CUT ,  C(KC_X),      KC_Z,    KC_X) \
+    X(CB_CPY ,  C(KC_C),      KC_Z,    KC_C) \
+    X(CB_PST ,  C(KC_V),      KC_Z,    KC_V) \
     X(CB_ENT ,  KC_ENT,       KC_K,    KC_L)
+
+//    X(CB_ESC ,  KC_ESC,       KC_A,    KC_S,    KC_D)
+//    X(CB_TAB ,  KC_TAB,       KC_S,    KC_D,    KC_F)
 
 enum combo_names {
     #define X(name, res, ...) name,
@@ -236,34 +238,27 @@ const key_override_t *const key_overrides[] = {
 };
 
 // --- macro ---
-void eeconfig_init_user(void) {
-    eeprom_write_word(EECONFIG_USER, EE_MAGIC_VIA_INIT);
-    uint8_t first = 0;
-    dynamic_keymap_macro_get_buffer(0, 1, &first);
-    if (first == 0) {
-        static uint8_t defaults[] =
-            SS_DOWN(X_LGUI) SS_DOWN(X_LSFT) SS_TAP(X_F23) SS_UP(X_LSFT) SS_UP(X_LGUI) "\0" //macro0
-            SS_LCTL("a") "\0" //macro1
-            SS_LGUI("d") "\0" //macro2
-            SS_LGUI("e") "\0" //macro3
-            SS_LGUI("r") "\0" //macro4
-            "%UserProfile%/Downloads/\0" //macro5
-            SS_DOWN(X_LALT) SS_TAP(X_GRAVE) SS_UP(X_LALT) "\0" //macro6
-            "\0" //macro7
-            "\0" //macro8
-            "\0" //macro9
-            "\0" //macro10
-            "\0" //macro11
-            "\0" //macro12
-            ;
-        dynamic_keymap_macro_set_buffer(0, sizeof(defaults), defaults);
-    }
-}
+static uint8_t default_macros[] PROGMEM =
+    SS_DOWN(X_LGUI) SS_DOWN(X_LSFT) SS_TAP(X_F23) SS_UP(X_LSFT) SS_UP(X_LGUI) "\0" //macro0
+    SS_LCTL("a") "\0" //macro1
+    SS_DOWN(X_LGUI) SS_DOWN(X_LSFT) SS_TAP(X_S) SS_UP(X_LSFT) SS_UP(X_LGUI) "\0" //macro2
+    SS_LGUI("e") "\0" //macro3
+    SS_LGUI("r") "\0" //macro4
+    "%UserProfile%/Downloads/\0" //macro5
+    "allow pasting\0" //macro6
+    "\0" //macro7
+    "\0" //macro8
+    "\0" //macro9
+    "\0" //macro10
+    "\0" //macro11
+    "\0" //macro12
+    SS_DOWN(X_LALT) SS_TAP(X_GRAVE) SS_UP(X_LALT) "\0" //macro13
+    "\0" //macro14
+    "\0" //macro15
+;
 
-void keyboard_post_init_userfn(void) {
-    if (eeprom_read_word((uint16_t*)EECONFIG_USER) != EE_MAGIC_VIA_INIT) {
-        eeconfig_init_user(); 
-    }
+void eeconfig_init_user(void) {
+    dynamic_keymap_macro_set_buffer(0, sizeof(default_macros), default_macros);
 }
 
 // --- proc ---
@@ -401,10 +396,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         MO(4),    MD_BLE1,  MD_BLE2,  MD_BLE3,  MD_24G,   MD_USB,   KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_DEL,  
         KC_TAB,   KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    JE_TOG,   KC_NO,    KC_NO,    KC_NO,    KC_ENT,  
         KC_LSFT,  KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,    KC_NO,
-        KC_LCTL,  KC_LGUI,  KC_LALT,  KC_NO,    MO(3),              KC_SPC,   MO(3),    KC_NO,    KC_NO,    KC_NO,    KC_NO
+        KC_LCTL,  KC_LGUI,  KC_LALT,  KC_NO,    MO(3),              QK_BAT,   MO(3),    KC_NO,    KC_NO,    KC_NO,    KC_NO
     )
-/*
-        KC_LSFT, KC_INS,  KC_DEL,    KC_HOME,  KC_END,     KC_PGUP,   KC_PGDN,  RGB_SAD, RGB_HUD, RGB_HUI,  RGB_VAI , QK_BAT,
-        KC_NO,   KC_DEL,  KC_GRV,    KC_LALT,  QK_WLO,                U_EE_CLR, RGB_SAI, KC_EQL,  RGB_SPD,  RGB_VAD,  RGB_SPI
-*/
 };
