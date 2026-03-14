@@ -154,7 +154,7 @@ tap_dance_action_t tap_dance_actions[] = {
     #undef X
 };
 
-// --- combo ---
+// --- combo (max:20 COMBO_COUNT) ---
 #define COMBOS_LIST \
     X(CB_CSTAB, C(S(KC_TAB)), KC_TAB,  KC_A) \
     X(CB_CTAB,  C(KC_TAB),    KC_TAB,  KC_S) \
@@ -163,19 +163,16 @@ tap_dance_action_t tap_dance_actions[] = {
     X(CB_CR,    C(KC_R),      KC_TAB,  KC_R) \
     X(CB_CT,    C(KC_T),      KC_TAB,  KC_T) \
     X(CB_CW,    C(KC_W),      KC_ESC,  KC_W) \
-    X(CB_CX,    C(KC_X),      KC_TAB,  KC_X) \
-    X(CB_CC,    C(KC_C),      KC_TAB,  KC_C) \
-    X(CB_CV,    C(KC_V),      KC_TAB,  KC_V) \
-    X(CB_BTN1,  MS_BTN1,      KC_LSFT, KC_Z) \
-    X(CB_BTN3,  MS_BTN3,      KC_LSFT, KC_X) \
-    X(CB_BTN2,  MS_BTN2,      KC_LSFT, KC_C) \
     X(CB_BSPC,  KC_BSPC,      KC_S,    KC_D) \
     X(CB_DEL ,  KC_DEL,       KC_D,    KC_F) \
     X(CB_HNZN,  MCR(0),       KC_J,    KC_K) \
     X(CB_CUT ,  C(KC_X),      KC_Z,    KC_X) \
     X(CB_CPY ,  C(KC_C),      KC_Z,    KC_C) \
     X(CB_PST ,  C(KC_V),      KC_Z,    KC_V) \
-    X(CB_ENT ,  KC_ENT,       KC_K,    KC_L)
+    X(CB_ENT ,  KC_ENT,       KC_K,    KC_L) \
+    X(CB_BTN1,  MS_BTN1,      KC_LSFT, KC_Z) \
+    X(CB_BTN3,  MS_BTN3,      KC_LSFT, KC_X) \
+    X(CB_BTN2,  MS_BTN2,      KC_LSFT, KC_C)
 
 //    X(CB_ESC ,  KC_ESC,       KC_A,    KC_S,    KC_D)
 //    X(CB_TAB ,  KC_TAB,       KC_S,    KC_D,    KC_F)
@@ -198,21 +195,37 @@ combo_t key_combos[] = {
 };
 
 // --- override ---
-#define OVERRIDES_LIST \
-    X(KO_S_BS,  KC_BSPC, KC_DEL, MOD_MASK_SHIFT, 0, MOD_MASK_SHIFT)
-
 /*
+static bool b_num_lock = false;
+bool insertnumlock(bool key_down, void *layer) {
+    if (key_down) {
+        b_num_lock = host_keyboard_led_state().num_lock;
+        if (!b_num_lock) {
+            tap_code(KC_NUM_LOCK);
+            wait_ms(10);
+        }
+    } else {
+        if (!b_num_lock) {
+            tap_code(KC_NUM_LOCK);
+        }
+    }
+    return true;
+}
     X(KO_0_NP,  KC_0,    KC_P0,   0, MOD_MASK_SHIFT, 0) \
     X(KO_1_NP,  KC_1,    KC_P1,   0, MOD_MASK_SHIFT, 0) \
-    X(KO_2_NP,  KC_2,    KC_P2,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_2_NP,  JE_2,    KC_P2,   0, MOD_MASK_SHIFT, 0) \
     X(KO_3_NP,  KC_3,    KC_P3,   0, MOD_MASK_SHIFT, 0) \
     X(KO_4_NP,  KC_4,    KC_P4,   0, MOD_MASK_SHIFT, 0) \
     X(KO_5_NP,  KC_5,    KC_P5,   0, MOD_MASK_SHIFT, 0) \
-    X(KO_6_NP,  KC_6,    KC_P6,   0, MOD_MASK_SHIFT, 0) \
-    X(KO_7_NP,  KC_7,    KC_P7,   0, MOD_MASK_SHIFT, 0) \
-    X(KO_8_NP,  KC_8,    KC_P8,   0, MOD_MASK_SHIFT, 0) \
-    X(KO_9_NP,  KC_9,    KC_P9,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_6_NP,  JE_6,    KC_P6,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_7_NP,  JE_7,    KC_P7,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_8_NP,  JE_8,    KC_P8,   0, MOD_MASK_SHIFT, 0) \
+    X(KO_9_NP,  JE_9,    KC_P9,   0, MOD_MASK_SHIFT, 0)
+        .custom_action    = insertnumlock, \
+        .enabled          = &is_jp_mode \
 */
+#define OVERRIDES_LIST \
+    X(KO_S_BS,  KC_DEL,  KC_DEL, MOD_MASK_SHIFT, 0, MOD_MASK_SHIFT)
 
 #define X(name, trig, repl, mask, neg, suppressed) \
     static const key_override_t name = { \
@@ -223,7 +236,8 @@ combo_t key_combos[] = {
         .negative_mod_mask = neg, \
         .suppressed_mods  = suppressed, \
         .options          = ko_options_default, \
-        .custom_action    = NULL \
+        .custom_action    = NULL, \
+        .enabled          = NULL \
     };
 OVERRIDES_LIST
 #undef X
@@ -263,15 +277,47 @@ void eeconfig_init_user(void) {
 static uint8_t physical_shift_mask = 0;
 
 void sync_physical_shift(void) {
-    if (physical_shift_mask) {
-        add_mods(MOD_BIT_LSHIFT);
-    } else {
-        del_mods(MOD_BIT_LSHIFT);
-    }
+    del_mods(MOD_MASK_SHIFT);
+    add_mods(physical_shift_mask);
     send_keyboard_report();
 }
 
+void send_alt_code(uint16_t ascii_code) {
+    bool initial_num_lock = host_keyboard_led_state().num_lock;
+    if (!initial_num_lock) {
+        tap_code(KC_NUM_LOCK);
+        wait_ms(10);
+    }
+    clear_mods();
+    register_code(KC_LALT);
+    send_keyboard_report();
+    char buf[5];
+    itoa(ascii_code, buf, 10);
+    for (char *p = buf; *p; p++) {
+        uint16_t num_kc = (*p == '0') ? KC_P0 : (KC_P1 + (*p - '1'));
+        tap_code(num_kc);
+    }
+    unregister_code(KC_LALT);
+    send_keyboard_report();
+    if (!initial_num_lock) {
+        tap_code(KC_NUM_LOCK);
+    }
+    sync_physical_shift();
+}
+
 void exec_je_send(uint16_t target_kc, bool should_shift) {
+    if (target_kc == KC_INT1 && should_shift) {
+        send_alt_code(95);
+        return;
+    }
+    if (target_kc == KC_INT3) {
+        if (should_shift) {
+            send_alt_code(124);
+        } else {
+            send_alt_code(92);
+        }
+        return;
+    }
     del_mods(MOD_MASK_SHIFT);
     send_keyboard_report();
     if (should_shift) {
@@ -279,12 +325,6 @@ void exec_je_send(uint16_t target_kc, bool should_shift) {
         send_keyboard_report();
     }
     register_code(target_kc);
-    unregister_code(target_kc);
-    if (should_shift) {
-        del_mods(MOD_BIT_LSHIFT);
-        send_keyboard_report();
-    }
-    sync_physical_shift();
 }
 
 typedef struct {
@@ -306,7 +346,7 @@ static const je_action_t je_table[] PROGMEM = {
     [JE_INDEX(JE_8)]    = {KC_8,    KC_8,    KC_QUOT, JEFLGS},
     [JE_INDEX(JE_9)]    = {KC_9,    KC_9,    KC_8,    JEFLGS},
     [JE_INDEX(JE_0)]    = {KC_0,    KC_0,    KC_9,    JEFLGS},
-    [JE_INDEX(JE_MINS)] = {KC_MINS, KC_MINS, KC_INT1, JEFLGS},
+    [JE_INDEX(JE_MINS)] = {KC_MINS, KC_MINS, KC_INT1,   JEFLGS},
     [JE_INDEX(JE_EQL)]  = {KC_EQL,  KC_MINS, KC_SCLN, JEFLGN | JEFLGS},
     [JE_INDEX(JE_LBRC)] = {KC_LBRC, KC_RBRC, KC_RBRC, JEFLGS},
     [JE_INDEX(JE_RBRC)] = {KC_RBRC, KC_BSLS, KC_BSLS, JEFLGS},
