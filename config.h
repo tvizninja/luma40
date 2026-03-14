@@ -59,7 +59,7 @@
 #define HOLD_ON_OTHER_KEY_PRESS
 #define PERMISSIVE_HOLD
 #define QUICK_TAP_TERM 0
-#define COMBO_TERM 50
+#define COMBO_TERM 40
 #define TAP_CODE_DELAY 10
 
 // RGB Matrix

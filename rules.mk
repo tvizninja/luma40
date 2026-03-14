@@ -51,10 +51,11 @@ SRC += lib/chibios-contrib/os/common/ext/CMSIS/ES32/FS026/md/md_spi.c
 DEBOUNCE_TYPE = asym_eager_defer_pk
 
 VIA_ENABLE = yes
+LTO_ENABLE = yes
+MOUSEKEY_ENABLE = yes
 COMBO_ENABLE = yes
 TAP_DANCE_ENABLE = yes
 KEY_OVERRIDE_ENABLE = yes
-MOUSEKEY_ENABLE = yes
 DYNAMIC_KEYMAP_ENABLE = yes
 EEPROM_DRIVER = custom
 RGB_MATRIX_ENABLE = yes 
