@@ -166,10 +166,10 @@ tap_dance_action_t tap_dance_actions[] = {
     X(CB_BSPC,  KC_BSPC,      KC_S,    KC_D) \
     X(CB_DEL ,  KC_DEL,       KC_D,    KC_F) \
     X(CB_HNZN,  MCR(0),       KC_J,    KC_K) \
+    X(CB_ENT ,  KC_ENT,       KC_K,    KC_L) \
     X(CB_CUT ,  C(KC_X),      KC_Z,    KC_X) \
     X(CB_CPY ,  C(KC_C),      KC_Z,    KC_C) \
     X(CB_PST ,  C(KC_V),      KC_Z,    KC_V) \
-    X(CB_ENT ,  KC_ENT,       KC_K,    KC_L) \
     X(CB_BTN1,  MS_BTN1,      KC_LSFT, KC_Z) \
     X(CB_BTN3,  MS_BTN3,      KC_LSFT, KC_X) \
     X(CB_BTN2,  MS_BTN2,      KC_LSFT, KC_C)
@@ -252,11 +252,11 @@ const key_override_t *const key_overrides[] = {
 // --- macro ---
 static uint8_t default_macros[] PROGMEM =
     SS_DOWN(X_LALT) SS_TAP(X_GRAVE) SS_UP(X_LALT) "\0" //macro0
-    SS_LCTL("a") "\0" //macro1
+    SS_TAP(X_HOME) SS_DOWN(X_LSFT) SS_TAP(X_END) SS_UP(X_LSFT) SS_DOWN(X_LCTL) SS_TAP(X_C) SS_UP(X_LCTL) "\0" //macro1
     SS_DOWN(X_LGUI) SS_DOWN(X_LSFT) SS_TAP(X_S) SS_UP(X_LSFT) SS_UP(X_LGUI) "\0" //macro2
     SS_LGUI("e") "\0" //macro3
     SS_LGUI("r") "\0" //macro4
-    "%UserProfile%/Downloads/\0" //macro5
+    "%UserProfile%\0" //macro5
     "\0" //macro6
     "\0" //macro7
     "\0" //macro8
